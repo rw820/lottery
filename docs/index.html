@@ -162,7 +162,14 @@ function checkSSQ(ticket,draw){
   else if(bm===1)p=6;
   if(!p)return null;
   let amt='浮动';
-  for(const g of(draw.prize_grades_parsed||[]))if(g.type===p){amt=g.typemoney||'浮动';break}
+  const grades=draw.prize_grades_parsed||[];
+  for(const g of grades){
+    if(Number(g.type)===p){const m=g.typemoney||g.amount||'';if(m&&m!=='0')amt=m;break}
+  }
+  // Fallback: try parsing prize_grades string if parsed is empty
+  if(amt==='浮动'&&!grades.length&&draw.prize_grades){
+    try{const pg=JSON.parse(draw.prize_grades);for(const g of pg){if(Number(g.type)===p){amt=g.typemoney||'浮动';break}}}catch(e){}
+  }
   return{prize:p,name:SSQ_NAMES[p],amount:amt};
 }
 function checkDLT(ticket,draw){
@@ -176,7 +183,18 @@ function checkDLT(ticket,draw){
   else if((fm===2&&bm===0)||(fm===1&&bm===1)||(fm===0&&bm===1))p=9;
   if(!p)return null;
   let amt='浮动';
-  for(const g of(draw.prize_grades_parsed||[]))if(g.level&&g.level.includes(DLT_NAMES[p])&&!g.level.includes('追加')){amt=g.amount||'浮动';break}
+  const target=DLT_NAMES[p];
+  const grades=draw.prize_grades_parsed||[];
+  for(const g of grades){
+    const lv=String(g.level||'');
+    // Match exact level name, excluding 追加 entries
+    if(lv&&lv.includes(target)&&!lv.includes('追加')&&!lv.includes('追加')){
+      const m=g.amount||g.typemoney||'';if(m)amt=m;break;
+    }
+  }
+  if(amt==='浮动'&&!grades.length&&draw.prize_grades){
+    try{const pg=JSON.parse(draw.prize_grades);for(const g of pg){const lv=String(g.level||'');if(lv.includes(target)&&!lv.includes('追加')&&!lv.includes('追加')){amt=g.amount||'浮动';break}}}catch(e){}
+  }
   return{prize:p,name:DLT_NAMES[p],amount:amt};
 }
 function checkTicket(lottery,ticket,draw){return lottery==='ssq'?checkSSQ(ticket,draw):checkDLT(ticket,draw)}
