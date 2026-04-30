@@ -463,36 +463,57 @@ const MyTickets={
 // --- App ---
 const app=createApp({
   setup(){
+    async function fetchJSON(url){
+      // Try direct fetch first
+      try{const r=await fetch(url,{signal:AbortSignal.timeout(8000)});if(r.ok)return await r.json()}catch(e){}
+      // Fallback: CORS proxies
+      const proxies=['https://corsproxy.io/?url=','https://api.allorigins.win/raw?url='];
+      for(const proxy of proxies){
+        try{const r=await fetch(proxy+encodeURIComponent(url),{signal:AbortSignal.timeout(10000)});if(r.ok){const t=await r.text();return JSON.parse(t)}}catch(e){}
+      }
+      return null;
+    }
+
     async function refreshData(){
       refreshing.value=true;refreshOk.value=false;
+      await loadData();
       let newDraws=0;
-      // Try SSQ API
+      const year=new Date().getFullYear();
+      // SSQ: fetch current year + recent draws
       try{
-        const r=await fetch(SSQ_API+'?name=ssq&issueStart=2026001&issueEnd=2026999&pageNo=1&pageSize=100',{headers:{'Referer':'https://www.cwl.gov.cn/kjxx/ssq/kjgg/'}});
-        const d=await r.json();
-        if(d.state===0&&d.result){
-          const existing=new Set((allData.value?.ssq||[]).map(x=>x.code));
+        const url=SSQ_API+'?name=ssq&issueStart='+year+'001&issueEnd='+year+'999&pageNo=1&pageSize=100';
+        const d=await fetchJSON(url);
+        if(d&&d.state===0&&d.result){
+          const existing=new Set((allData.value.ssq||[]).map(x=>x.code));
           const items=d.result.filter(x=>!existing.has(x.code));
-          if(items.length){allData.value.ssq=[...items.map(x=>({code:x.code,draw_date:x.date,red:x.red,blue:x.blue,sales:+x.sales,pool_money:+x.poolbalance,prize_grades:x.prizegrades,prize_grades_parsed:JSON.parse(x.prizegrades||'[]')})),...(allData.value?.ssq||[])];newDraws+=items.length}
+          if(items.length){
+            const mapped=items.map(x=>{let pgParsed=[];try{pgParsed=JSON.parse(x.prizegrades||'[]')}catch(e){}return{code:x.code,draw_date:x.date,week_day:x.week||'',red:x.red,blue:x.blue,sales:+x.sales,pool_money:+x.poolbalance,content:x.content||'',prize_grades:x.prizegrades||'',prize_grades_parsed:pgParsed}});
+            allData.value={...allData.value,ssq:[...mapped,...allData.value.ssq]};newDraws+=items.length;
+          }
         }
-      }catch(e){console.log('SSQ API failed:',e.message)}
-      // Try DLT API
+      }catch(e){console.log('SSQ refresh error:',e)}
+      // DLT: fetch latest page
       try{
-        const r=await fetch(DLT_API+'?gameNo=85&provinceId=0&pageSize=20&pageNo=1&is498=true');
-        const d=await r.json();
-        const items=d.value?.list||[];
-        const existing=new Set((allData.value?.dlt||[]).map(x=>x.code));
-        const newItems=items.filter(x=>!existing.has(x.lotteryDrawNum));
-        if(newItems.length){
-          const parsed=newItems.map(x=>{const nums=x.lotteryDrawResult.trim().split(/\s+/);return{code:x.lotteryDrawNum,draw_date:x.lotteryDrawTime,front:nums.slice(0,5).join(','),back:nums.slice(5).join(','),sales:+(x.totalSaleAmount||'0').replace(/,/g,''),pool_money:int_float(x.poolBalanceAfterdraw||'0'),prize_grades:JSON.stringify((x.prizeLevelList||[]).map(p=>({level:p.prizeLevel,count:p.stakeCount,amount:p.stakeAmountFormat,total:p.totalPrizeamount}))),prize_grades_parsed:(x.prizeLevelList||[]).map(p=>({level:p.prizeLevel,count:p.stakeCount,amount:p.stakeAmountFormat,total:p.totalPrizeamount}))}});
-          allData.value.dlt=[...parsed,...(allData.value?.dlt||[])];newDraws+=parsed.length}
-      }catch(e){console.log('DLT API failed:',e.message)}
+        const url=DLT_API+'?gameNo=85&provinceId=0&pageSize=50&pageNo=1&is498=true';
+        const d=await fetchJSON(url);
+        if(d&&d.value&&d.value.list){
+          const existing=new Set((allData.value.dlt||[]).map(x=>x.code));
+          const items=d.value.list.filter(x=>!existing.has(x.lotteryDrawNum));
+          if(items.length){
+            const mapped=items.map(x=>{
+              const nums=x.lotteryDrawResult.trim().split(/\s+/);
+              const pgParsed=(x.prizeLevelList||[]).map(p=>({level:p.prizeLevel,count:p.stakeCount,amount:p.stakeAmountFormat,total:p.totalPrizeamount}));
+              return{code:x.lotteryDrawNum,draw_date:x.lotteryDrawTime,front:nums.slice(0,5).join(','),back:nums.slice(5).join(','),sales:+(x.totalSaleAmount||'0').replace(/,/g,''),pool_money:Math.round(parseFloat(x.poolBalanceAfterdraw||'0')),prize_grades:JSON.stringify(pgParsed),prize_grades_parsed:pgParsed};
+            });
+            allData.value={...allData.value,dlt:[...mapped,...allData.value.dlt]};newDraws+=mapped.length;
+          }
+        }
+      }catch(e){console.log('DLT refresh error:',e)}
 
       refreshing.value=false;
-      if(newDraws>0){refreshOk.value=true;showToast(`获取到 ${newDraws} 期新数据（仅本次会话有效）`,'success')}
-      else{showToast('数据已是最新，或网络无法访问 API（请在本地运行 update_and_push.bat 更新）','info',5000)}
+      if(newDraws>0){refreshOk.value=true;showToast('已获取 '+newDraws+' 期新数据','success')}
+      else{showToast('数据已是最新，无需更新','info')}
     }
-    function int_float(v){try{return Math.round(parseFloat(v))}catch{return 0}}
     return{toast,refreshing,refreshOk,refreshData};
   }
 });
