@@ -7,98 +7,75 @@
 <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
 <script src="https://unpkg.com/vue-router@4/dist/vue-router.global.prod.js"></script>
 <style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; }
-a { color: #60a5fa; text-decoration: none; }
-a:hover { text-decoration: underline; }
-
-/* Nav */
-.nav { background: #1e293b; border-bottom: 1px solid #334155; padding: 0 24px; display: flex; align-items: center; height: 56px; position: sticky; top: 0; z-index: 100; }
-.nav-brand { font-size: 18px; font-weight: 700; color: #f1f5f9; margin-right: 32px; }
-.nav-links { display: flex; gap: 4px; }
-.nav-links a { padding: 8px 16px; border-radius: 6px; color: #94a3b8; font-size: 14px; transition: all .2s; }
-.nav-links a:hover { background: #334155; color: #f1f5f9; text-decoration: none; }
-.nav-links a.active { background: #3b82f6; color: #fff; }
-
-/* Container */
-.container { max-width: 1200px; margin: 0 auto; padding: 24px 16px; }
-
-/* Tabs */
-.tabs { display: flex; gap: 4px; margin-bottom: 20px; }
-.tab { padding: 8px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; color: #94a3b8; background: #1e293b; border: 1px solid #334155; transition: all .2s; }
-.tab:hover { border-color: #60a5fa; color: #e2e8f0; }
-.tab.active { background: #3b82f6; color: #fff; border-color: #3b82f6; }
-
-/* Table */
-.table-wrap { overflow-x: auto; border-radius: 8px; border: 1px solid #334155; }
-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-th { background: #1e293b; color: #94a3b8; font-weight: 600; text-align: left; padding: 10px 12px; border-bottom: 1px solid #334155; white-space: nowrap; }
-td { padding: 10px 12px; border-bottom: 1px solid #1e293b; }
-tr:hover td { background: #1e293b; }
-tr { cursor: pointer; }
-
-/* Balls */
-.balls { display: inline-flex; gap: 4px; flex-wrap: wrap; }
-.ball { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; font-size: 12px; font-weight: 700; }
-.ball-red { background: #ef4444; color: #fff; }
-.ball-blue { background: #3b82f6; color: #fff; }
-
-/* Pagination */
-.pagination { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 20px; }
-.pagination button { padding: 6px 14px; border-radius: 6px; border: 1px solid #334155; background: #1e293b; color: #e2e8f0; cursor: pointer; font-size: 13px; }
-.pagination button:hover:not(:disabled) { border-color: #60a5fa; }
-.pagination button:disabled { opacity: .4; cursor: default; }
-.pagination span { color: #94a3b8; font-size: 13px; }
-
-/* Card */
-.card { background: #1e293b; border: 1px solid #334155; border-radius: 10px; padding: 20px; margin-bottom: 16px; }
-.card h2 { font-size: 16px; margin-bottom: 12px; color: #f1f5f9; }
-
-/* Detail page */
-.draw-header { text-align: center; padding: 24px 0; }
-.draw-header h1 { font-size: 22px; color: #f1f5f9; margin-bottom: 8px; }
-.draw-header .date { color: #94a3b8; font-size: 14px; }
-.draw-balls { display: flex; justify-content: center; gap: 8px; margin: 20px 0; flex-wrap: wrap; }
-.draw-balls .ball { width: 44px; height: 44px; font-size: 16px; }
-.draw-balls .sep { display: flex; align-items: center; color: #475569; font-size: 20px; font-weight: 300; }
-.stat-row { display: flex; justify-content: center; gap: 32px; margin: 16px 0; flex-wrap: wrap; }
-.stat-item { text-align: center; }
-.stat-item .label { color: #94a3b8; font-size: 12px; margin-bottom: 4px; }
-.stat-item .value { color: #f1f5f9; font-size: 16px; font-weight: 600; }
-
-/* Prize table */
-.prize-table { width: 100%; margin-top: 12px; }
-.prize-table th, .prize-table td { padding: 8px 12px; text-align: left; }
-.prize-table .highlight { color: #fbbf24; font-weight: 600; }
-
-/* Check page */
-.check-section { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-@media (max-width: 768px) { .check-section { grid-template-columns: 1fr; } }
-textarea { width: 100%; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: #e2e8f0; padding: 12px; font-size: 13px; font-family: monospace; resize: vertical; min-height: 200px; }
-textarea:focus { outline: none; border-color: #3b82f6; }
-select, input[type="text"] { background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #e2e8f0; padding: 8px 12px; font-size: 14px; }
-select:focus, input:focus { outline: none; border-color: #3b82f6; }
-
-.btn { padding: 8px 20px; border-radius: 6px; border: none; cursor: pointer; font-size: 14px; font-weight: 500; transition: all .2s; }
-.btn-primary { background: #3b82f6; color: #fff; }
-.btn-primary:hover { background: #2563eb; }
-.btn-secondary { background: #334155; color: #e2e8f0; }
-.btn-secondary:hover { background: #475569; }
-
-.upload-zone { border: 2px dashed #334155; border-radius: 10px; padding: 40px; text-align: center; color: #94a3b8; cursor: pointer; transition: all .2s; }
-.upload-zone:hover { border-color: #3b82f6; color: #e2e8f0; }
-.upload-zone.dragover { border-color: #3b82f6; background: rgba(59,130,246,.1); }
-
-.result-table { margin-top: 16px; }
-.result-table .win { color: #fbbf24; font-weight: 600; }
-.result-table .lose { color: #64748b; }
-
-.form-row { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
-.form-row label { color: #94a3b8; font-size: 13px; white-space: nowrap; }
-.hint { color: #64748b; font-size: 12px; margin-top: 4px; }
-.summary { display: flex; gap: 20px; margin: 12px 0; flex-wrap: wrap; }
-.summary .tag { padding: 4px 12px; border-radius: 4px; font-size: 13px; background: #334155; }
-.back-link { margin-bottom: 16px; }
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#0f172a;color:#e2e8f0;min-height:100vh}
+a{color:#60a5fa;text-decoration:none}a:hover{text-decoration:underline}
+.nav{background:#1e293b;border-bottom:1px solid #334155;padding:0 24px;display:flex;align-items:center;height:56px;position:sticky;top:0;z-index:100}
+.nav-brand{font-size:18px;font-weight:700;color:#f1f5f9;margin-right:32px}
+.nav-links{display:flex;gap:4px}
+.nav-links a{padding:8px 16px;border-radius:6px;color:#94a3b8;font-size:14px;transition:all .2s}
+.nav-links a:hover{background:#334155;color:#f1f5f9;text-decoration:none}
+.nav-links a.active{background:#3b82f6;color:#fff}
+.container{max-width:1200px;margin:0 auto;padding:24px 16px}
+.tabs{display:flex;gap:4px;margin-bottom:20px}
+.tab{padding:8px 20px;border-radius:6px;cursor:pointer;font-size:14px;font-weight:500;color:#94a3b8;background:#1e293b;border:1px solid #334155;transition:all .2s}
+.tab:hover{border-color:#60a5fa;color:#e2e8f0}
+.tab.active{background:#3b82f6;color:#fff;border-color:#3b82f6}
+.table-wrap{overflow-x:auto;border-radius:8px;border:1px solid #334155}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#1e293b;color:#94a3b8;font-weight:600;text-align:left;padding:10px 12px;border-bottom:1px solid #334155;white-space:nowrap}
+td{padding:10px 12px;border-bottom:1px solid #1e293b}
+tbody tr:hover td{background:#1e293b}
+tbody tr{cursor:pointer}
+.balls{display:inline-flex;gap:4px;flex-wrap:wrap}
+.ball{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;font-size:12px;font-weight:700}
+.ball-red{background:#ef4444;color:#fff}
+.ball-blue{background:#3b82f6;color:#fff}
+.pagination{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:20px;flex-wrap:wrap}
+.pagination button{padding:6px 14px;border-radius:6px;border:1px solid #334155;background:#1e293b;color:#e2e8f0;cursor:pointer;font-size:13px}
+.pagination button:hover:not(:disabled){border-color:#60a5fa}
+.pagination button:disabled{opacity:.4;cursor:default}
+.pagination span{color:#94a3b8;font-size:13px}
+.page-nums{display:flex;gap:4px;flex-wrap:wrap}
+.page-num{padding:4px 10px;border-radius:4px;cursor:pointer;font-size:12px;color:#94a3b8;background:#1e293b;border:1px solid #334155}
+.page-num:hover{border-color:#60a5fa}
+.page-num.active{background:#3b82f6;color:#fff;border-color:#3b82f6}
+.card{background:#1e293b;border:1px solid #334155;border-radius:10px;padding:20px;margin-bottom:16px}
+.card h2{font-size:16px;margin-bottom:12px;color:#f1f5f9}
+.draw-header{text-align:center;padding:24px 0}
+.draw-header h1{font-size:22px;color:#f1f5f9;margin-bottom:8px}
+.draw-header .date{color:#94a3b8;font-size:14px}
+.draw-balls{display:flex;justify-content:center;gap:8px;margin:20px 0;flex-wrap:wrap}
+.draw-balls .ball{width:44px;height:44px;font-size:16px}
+.draw-balls .sep{display:flex;align-items:center;color:#475569;font-size:20px;font-weight:300}
+.stat-row{display:flex;justify-content:center;gap:32px;margin:16px 0;flex-wrap:wrap}
+.stat-item{text-align:center}
+.stat-item .label{color:#94a3b8;font-size:12px;margin-bottom:4px}
+.stat-item .value{color:#f1f5f9;font-size:16px;font-weight:600}
+.highlight{color:#fbbf24;font-weight:600}
+.check-section{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:768px){.check-section{grid-template-columns:1fr}}
+textarea{width:100%;background:#0f172a;border:1px solid #334155;border-radius:8px;color:#e2e8f0;padding:12px;font-size:13px;font-family:monospace;resize:vertical;min-height:200px}
+textarea:focus{outline:none;border-color:#3b82f6}
+select,input[type="text"]{background:#0f172a;border:1px solid #334155;border-radius:6px;color:#e2e8f0;padding:8px 12px;font-size:14px}
+select:focus,input:focus{outline:none;border-color:#3b82f6}
+.btn{padding:8px 20px;border-radius:6px;border:none;cursor:pointer;font-size:14px;font-weight:500;transition:all .2s}
+.btn-primary{background:#3b82f6;color:#fff}
+.btn-primary:hover{background:#2563eb}
+.btn-secondary{background:#334155;color:#e2e8f0}
+.btn-secondary:hover{background:#475569}
+.upload-zone{border:2px dashed #334155;border-radius:10px;padding:40px;text-align:center;color:#94a3b8;cursor:pointer;transition:all .2s}
+.upload-zone:hover{border-color:#3b82f6;color:#e2e8f0}
+.upload-zone.dragover{border-color:#3b82f6;background:rgba(59,130,246,.1)}
+.win{color:#fbbf24;font-weight:600}
+.lose{color:#64748b}
+.form-row{display:flex;gap:12px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+.form-row label{color:#94a3b8;font-size:13px;white-space:nowrap}
+.hint{color:#64748b;font-size:12px;margin-top:4px}
+.summary{display:flex;gap:20px;margin:12px 0;flex-wrap:wrap}
+.summary .tag{padding:4px 12px;border-radius:4px;font-size:13px;background:#334155}
+.back-link{margin-bottom:16px}
+.loading-box{text-align:center;padding:40px;color:#94a3b8}
 </style>
 </head>
 <body>
@@ -106,8 +83,8 @@ select:focus, input:focus { outline: none; border-color: #3b82f6; }
 <nav class="nav">
   <div class="nav-brand">彩票查询</div>
   <div class="nav-links">
-    <router-link to="/" :class="{ active: $route.path === '/' }">开奖记录</router-link>
-    <router-link to="/check" :class="{ active: $route.path === '/check' }">兑奖查询</router-link>
+    <router-link to="/" :class="{active:$route.path==='/'}">开奖记录</router-link>
+    <router-link to="/check" :class="{active:$route.path==='/check'}">兑奖查询</router-link>
   </div>
 </nav>
 <div class="container">
@@ -116,448 +93,399 @@ select:focus, input:focus { outline: none; border-color: #3b82f6; }
 </div>
 
 <script>
-const { createApp, ref, computed, watch, onMounted } = Vue;
-const { createRouter, createWebHashHistory } = VueRouter;
+const {createApp,ref,computed,onMounted,provide,inject} = Vue;
+const {createRouter,createWebHashHistory} = VueRouter;
 
-// --- API base URL ---
-const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-  ? 'http://localhost:5000' : '';
+const DATA_URL = './data/lottery_data.json';
 
-// --- DrawList Page ---
-const DrawList = {
-  setup() {
-    const lottery = ref('ssq');
-    const page = ref(1);
-    const pageSize = ref(20);
-    const items = ref([]);
-    const total = ref(0);
-    const totalPages = ref(0);
-    const loading = ref(false);
-    const codeSearch = ref('');
+function formatMoney(v){
+  if(!v)return '-';
+  if(v>=1e8)return(v/1e8).toFixed(2)+'亿';
+  if(v>=1e4)return(v/1e4).toFixed(0)+'万';
+  return v.toLocaleString();
+}
 
-    async function fetchDraws() {
-      loading.value = true;
-      try {
-        const params = new URLSearchParams({
-          lottery: lottery.value,
-          page: page.value,
-          page_size: pageSize.value,
-        });
-        if (codeSearch.value) params.set('code', codeSearch.value);
-        const resp = await fetch(`${API}/api/draws?${params}`);
-        const data = await resp.json();
-        items.value = data.items || [];
-        total.value = data.total || 0;
-        totalPages.value = data.total_pages || 0;
-      } catch (e) {
-        console.error(e);
-      } finally {
-        loading.value = false;
-      }
+const SSQ_NAMES={1:'一等奖',2:'二等奖',3:'三等奖',4:'四等奖',5:'五等奖',6:'六等奖'};
+const DLT_NAMES={1:'一等奖',2:'二等奖',3:'三等奖',4:'四等奖',5:'五等奖',6:'六等奖',7:'七等奖',8:'八等奖',9:'九等奖'};
+
+function checkSSQ(ticket,draw){
+  const tR=new Set(ticket.red.split(',')),tB=ticket.blue;
+  const dR=new Set(draw.red.split(',')),dB=draw.blue;
+  let rm=0;tR.forEach(n=>{if(dR.has(n))rm++});
+  const bm=tB===dB?1:0;
+  let p=null;
+  if(rm===6&&bm===1)p=1;else if(rm===6&&bm===0)p=2;
+  else if(rm===5&&bm===1)p=3;
+  else if((rm===5&&bm===0)||(rm===4&&bm===1))p=4;
+  else if((rm===4&&bm===0)||(rm===3&&bm===1))p=5;
+  else if(bm===1)p=6;
+  if(!p)return null;
+  let amt='浮动';
+  for(const g of(draw.prize_grades_parsed||[])){
+    if(g.type===p){amt=g.typemoney||'浮动';break}
+  }
+  return{prize:p,name:SSQ_NAMES[p],amount:amt};
+}
+
+function checkDLT(ticket,draw){
+  const tF=new Set(ticket.front.split(',')),tB=new Set(ticket.back.split(','));
+  const dF=new Set(draw.front.split(',')),dB=new Set(draw.back.split(','));
+  let fm=0,bm=0;tF.forEach(n=>{if(dF.has(n))fm++});tB.forEach(n=>{if(dB.has(n))bm++});
+  let p=null;
+  if(fm===5&&bm===2)p=1;else if(fm===5&&bm===1)p=2;else if(fm===5&&bm===0)p=3;
+  else if(fm===4&&bm===2)p=4;else if(fm===4&&bm===1)p=5;else if(fm===3&&bm===2)p=6;
+  else if((fm===4&&bm===0)||(fm===3&&bm===1)||(fm===2&&bm===2))p=7;
+  else if((fm===3&&bm===0)||(fm===2&&bm===1)||(fm===1&&bm===2)||(fm===0&&bm===2))p=8;
+  else if((fm===2&&bm===0)||(fm===1&&bm===1)||(fm===0&&bm===1))p=9;
+  if(!p)return null;
+  let amt='浮动';
+  for(const g of(draw.prize_grades_parsed||[])){
+    if(g.level&&g.level.includes(DLT_NAMES[p])&&!g.level.includes('追加')){amt=g.amount||'浮动';break}
+  }
+  return{prize:p,name:DLT_NAMES[p],amount:amt};
+}
+
+function parseLine(line,lt){
+  line=line.replace(/ \+ /g,'|').replace(/\+/g,'|');
+  const parts=line.split('|');
+  if(lt==='ssq'){
+    if(parts.length===2){
+      const r=parts[0].trim().replace(/ /g,',').replace(/,,/g,',').split(',').filter(Boolean);
+      const b=parts[1].trim().replace(/ /g,'');
+      if(r.length===6&&b)return{red:r.map(n=>n.padStart(2,'0')).join(','),blue:b.padStart(2,'0')};
+    }else{
+      const nums=line.replace(/ /g,',').replace(/,,/g,',').split(',').filter(Boolean);
+      if(nums.length===7)return{red:nums.slice(0,6).map(n=>n.padStart(2,'0')).join(','),blue:nums[6].padStart(2,'0')};
+    }
+  }else{
+    if(parts.length===2){
+      const f=parts[0].trim().replace(/ /g,',').replace(/,,/g,',').split(',').filter(Boolean);
+      const b=parts[1].trim().replace(/ /g,',').replace(/,,/g,',').split(',').filter(Boolean);
+      if(f.length===5&&b.length===2)return{front:f.map(n=>n.padStart(2,'0')).join(','),back:b.map(n=>n.padStart(2,'0')).join(',')};
+    }else{
+      const nums=line.replace(/ /g,',').replace(/,,/g,',').split(',').filter(Boolean);
+      if(nums.length===7)return{front:nums.slice(0,5).map(n=>n.padStart(2,'0')).join(','),back:nums.slice(5,7).map(n=>n.padStart(2,'0')).join(',')};
+    }
+  }
+  return null;
+}
+
+// Shared data store
+const allData=ref(null);
+async function loadData(){
+  if(allData.value)return allData.value;
+  const resp=await fetch(DATA_URL);
+  allData.value=await resp.json();
+  return allData.value;
+}
+
+// --- DrawList ---
+const DrawList={
+  setup(){
+    const lottery=ref('ssq');
+    const page=ref(1);
+    const pageSize=30;
+    const loading=ref(true);
+    const codeSearch=ref('');
+    const filtered=ref([]);
+
+    async function init(){
+      loading.value=true;
+      try{
+        const data=await loadData();
+        filtered.value=data[lottery.value]||[];
+      }catch(e){console.error(e);filtered.value=[]}
+      finally{loading.value=false}
     }
 
-    function switchLottery(lt) {
-      lottery.value = lt;
-      page.value = 1;
-      fetchDraws();
+    function switchLottery(lt){
+      lottery.value=lt;page.value=1;codeSearch.value='';init();
     }
 
-    function goto(p) {
-      if (p < 1 || p > totalPages.value) return;
-      page.value = p;
-      fetchDraws();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+    function searchCode(){
+      page.value=1;
+      loadData().then(data=>{
+        const items=data[lottery.value]||[];
+        if(codeSearch.value)filtered.value=items.filter(d=>d.code.includes(codeSearch.value));
+        else filtered.value=items;
+      });
     }
 
-    function searchCode() {
-      page.value = 1;
-      fetchDraws();
+    const total=computed(()=>filtered.value.length);
+    const totalPages=computed(()=>Math.ceil(total.value/pageSize));
+    const items=computed(()=>{
+      const s=(page.value-1)*pageSize;
+      return filtered.value.slice(s,s+pageSize);
+    });
+
+    function goto(p){
+      if(p<1||p>totalPages.value)return;
+      page.value=p;
+      window.scrollTo({top:0,behavior:'smooth'});
     }
 
-    onMounted(fetchDraws);
+    const pageNumbers=computed(()=>{
+      const pages=[];const tp=totalPages.value;const cp=page.value;
+      let start=Math.max(1,cp-3);let end=Math.min(tp,cp+3);
+      if(start>1)pages.push(1);if(start>2)pages.push('...');
+      for(let i=start;i<=end;i++)pages.push(i);
+      if(end<tp-1)pages.push('...');if(end<tp)pages.push(tp);
+      return pages;
+    });
 
-    return { lottery, page, pageSize, items, total, totalPages, loading, codeSearch,
-             switchLottery, goto, searchCode };
+    onMounted(init);
+
+    return{lottery,page,items,total,totalPages,loading,codeSearch,
+           switchLottery,goto,searchCode,pageNumbers,formatMoney};
   },
-  template: `
-    <div>
-      <div class="tabs">
-        <div class="tab" :class="{ active: lottery === 'ssq' }" @click="switchLottery('ssq')">双色球</div>
-        <div class="tab" :class="{ active: lottery === 'dlt' }" @click="switchLottery('dlt')">大乐透</div>
+  template:`
+<div>
+  <div class="tabs">
+    <div class="tab" :class="{active:lottery==='ssq'}" @click="switchLottery('ssq')">双色球</div>
+    <div class="tab" :class="{active:lottery==='dlt'}" @click="switchLottery('dlt')">大乐透</div>
+  </div>
+  <div class="form-row" style="margin-bottom:16px">
+    <label>期号搜索:</label>
+    <input type="text" v-model="codeSearch" @keyup.enter="searchCode" placeholder="输入期号...">
+    <button class="btn btn-secondary" @click="searchCode">搜索</button>
+    <button class="btn btn-secondary" v-if="codeSearch" @click="codeSearch='';searchCode()">清除</button>
+  </div>
+  <div v-if="loading" class="loading-box">加载中...</div>
+  <div v-else-if="!items.length" class="loading-box">暂无数据</div>
+  <div v-else>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>期号</th><th>开奖日期</th><th>开奖号码</th><th>销售额</th><th>奖池余额</th></tr></thead>
+        <tbody>
+          <tr v-for="d in items" :key="d.code" @click="$router.push('/draw/'+lottery+'/'+d.code)">
+            <td>{{d.code}}</td>
+            <td>{{d.draw_date}}</td>
+            <td>
+              <span class="balls" v-if="lottery==='ssq'">
+                <span v-for="n in (d.red||'').split(',')" class="ball ball-red">{{n}}</span>
+                <span class="ball ball-blue">{{d.blue}}</span>
+              </span>
+              <span class="balls" v-else>
+                <span v-for="n in (d.front||'').split(',')" class="ball ball-red">{{n}}</span>
+                <span v-for="n in (d.back||'').split(',')" class="ball ball-blue">{{n}}</span>
+              </span>
+            </td>
+            <td>{{formatMoney(d.sales)}}</td>
+            <td>{{formatMoney(d.pool_money)}}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="pagination">
+      <button :disabled="page<=1" @click="goto(page-1)">上一页</button>
+      <div class="page-nums">
+        <span v-for="p in pageNumbers" :key="p" :class="['page-num',{active:p===page}]" @click="typeof p==='number'&&goto(p)">{{p}}</span>
       </div>
+      <span>共 {{total}} 期</span>
+      <button :disabled="page>=totalPages" @click="goto(page+1)">下一页</button>
+    </div>
+  </div>
+</div>`
+};
 
-      <div class="form-row" style="margin-bottom:16px">
-        <label>期号搜索:</label>
-        <input type="text" v-model="codeSearch" @keyup.enter="searchCode" placeholder="输入期号...">
-        <button class="btn btn-secondary" @click="searchCode">搜索</button>
-      </div>
-
-      <div v-if="loading" style="text-align:center;color:#94a3b8;padding:40px">加载中...</div>
-      <div v-else-if="!items.length" style="text-align:center;color:#94a3b8;padding:40px">暂无数据</div>
-      <div v-else>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>期号</th>
-                <th>开奖日期</th>
-                <th>开奖号码</th>
-                <th>销售额</th>
-                <th>奖池余额</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="d in items" :key="d.code" @click="$router.push('/draw/' + lottery + '/' + d.code)">
-                <td>{{ d.code }}</td>
-                <td>{{ d.draw_date }}</td>
-                <td>
-                  <span class="balls" v-if="lottery === 'ssq'">
-                    <span v-for="n in (d.red || '').split(',')" class="ball ball-red">{{ n }}</span>
-                    <span class="ball ball-blue">{{ d.blue }}</span>
-                  </span>
-                  <span class="balls" v-else>
-                    <span v-for="n in (d.front || '').split(',')" class="ball ball-red">{{ n }}</span>
-                    <span class="ball ball-blue" v-for="n in (d.back || '').split(',')" class="ball ball-blue">{{ n }}</span>
-                  </span>
-                </td>
-                <td>{{ formatMoney(d.sales) }}</td>
-                <td>{{ formatMoney(d.pool_money) }}</td>
-              </tr>
-            </tbody>
-          </table>
+// --- DrawDetail ---
+const DrawDetail={
+  setup(){
+    const route=VueRouter.useRoute();
+    const draw=ref(null);
+    const loading=ref(true);
+    onMounted(async()=>{
+      loading.value=true;
+      try{
+        const data=await loadData();
+        const items=data[route.params.lottery]||[];
+        draw.value=items.find(d=>d.code===route.params.code)||null;
+      }catch(e){console.error(e)}
+      finally{loading.value=false}
+    });
+    const prizes=computed(()=>draw.value?.prize_grades_parsed||[]);
+    return{draw,loading,prizes,lottery:route.params.lottery,formatMoney,
+           ssqName:t=>SSQ_NAMES[t]||('奖'+t)};
+  },
+  template:`
+<div>
+  <div class="back-link"><router-link to="/">&larr; 返回列表</router-link></div>
+  <div v-if="loading" class="loading-box">加载中...</div>
+  <div v-else-if="!draw" class="loading-box" style="color:#f87171">未找到该期数据</div>
+  <div v-else>
+    <div class="card">
+      <div class="draw-header">
+        <h1>{{lottery==='ssq'?'双色球':'大乐透'}} 第 {{draw.code}} 期</h1>
+        <div class="date">开奖日期: {{draw.draw_date}}</div>
+        <div class="draw-balls">
+          <template v-if="lottery==='ssq'">
+            <span v-for="n in (draw.red||'').split(',')" class="ball ball-red">{{n}}</span>
+            <span class="sep">|</span>
+            <span class="ball ball-blue">{{draw.blue}}</span>
+          </template>
+          <template v-else>
+            <span v-for="n in (draw.front||'').split(',')" class="ball ball-red">{{n}}</span>
+            <span class="sep">|</span>
+            <span v-for="n in (draw.back||'').split(',')" class="ball ball-blue">{{n}}</span>
+          </template>
         </div>
-
-        <div class="pagination">
-          <button :disabled="page <= 1" @click="goto(page - 1)">上一页</button>
-          <span>第 {{ page }} / {{ totalPages }} 页 (共 {{ total }} 期)</span>
-          <button :disabled="page >= totalPages" @click="goto(page + 1)">下一页</button>
+        <div class="stat-row">
+          <div class="stat-item"><div class="label">销售额</div><div class="value">{{formatMoney(draw.sales)}}</div></div>
+          <div class="stat-item"><div class="label">奖池余额</div><div class="value">{{formatMoney(draw.pool_money)}}</div></div>
         </div>
       </div>
     </div>
-  `,
-  methods: {
-    formatMoney(v) {
-      if (!v) return '-';
-      if (v >= 1e8) return (v / 1e8).toFixed(2) + '亿';
-      if (v >= 1e4) return (v / 1e4).toFixed(0) + '万';
-      return v.toLocaleString();
-    }
-  }
-};
-
-// --- DrawDetail Page ---
-const DrawDetail = {
-  setup() {
-    const route = VueRouter.useRoute();
-    const draw = ref(null);
-    const loading = ref(true);
-    const prizes = ref([]);
-
-    async function fetchDetail() {
-      loading.value = true;
-      try {
-        const resp = await fetch(`${API}/api/draws/${route.params.lottery}/${route.params.code}`);
-        if (!resp.ok) { loading.value = false; return; }
-        const data = await resp.json();
-        draw.value = data;
-        prizes.value = data.prize_grades_parsed || [];
-      } catch (e) {
-        console.error(e);
-      } finally {
-        loading.value = false;
-      }
-    }
-
-    onMounted(fetchDetail);
-
-    return { draw, loading, prizes, lottery: route.params.lottery };
-  },
-  template: `
-    <div>
-      <div class="back-link"><router-link to="/">&larr; 返回列表</router-link></div>
-      <div v-if="loading" style="text-align:center;padding:40px;color:#94a3b8">加载中...</div>
-      <div v-else-if="draw">
-        <div class="card">
-          <div class="draw-header">
-            <h1>{{ lottery === 'ssq' ? '双色球' : '大乐透' }} 第 {{ draw.code }} 期</h1>
-            <div class="date">开奖日期: {{ draw.draw_date }}</div>
-            <div class="draw-balls">
-              <template v-if="lottery === 'ssq'">
-                <span v-for="n in (draw.red || '').split(',')" class="ball ball-red">{{ n }}</span>
-                <span class="sep">|</span>
-                <span class="ball ball-blue">{{ draw.blue }}</span>
-              </template>
-              <template v-else>
-                <span v-for="n in (draw.front || '').split(',')" class="ball ball-red">{{ n }}</span>
-                <span class="sep">|</span>
-                <span v-for="n in (draw.back || '').split(',')" class="ball ball-blue">{{ n }}</span>
-              </template>
-            </div>
-            <div class="stat-row">
-              <div class="stat-item"><div class="label">销售额</div><div class="value">{{ formatMoney(draw.sales) }}</div></div>
-              <div class="stat-item"><div class="label">奖池余额</div><div class="value">{{ formatMoney(draw.pool_money) }}</div></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="card" v-if="prizes.length">
-          <h2>奖项明细</h2>
-          <div class="table-wrap">
-            <table class="prize-table">
-              <thead>
-                <tr>
-                  <th>奖项</th>
-                  <th v-if="lottery === 'ssq'">中奖注数</th>
-                  <th v-else>中奖注数</th>
-                  <th>单注金额</th>
-                  <th v-if="lottery !== 'ssq'">总金额</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="p in prizes" :key="p.type || p.level">
-                  <td class="highlight">{{ p.type ? ssqName(p.type) : (p.level || '') }}</td>
-                  <td>{{ p.typenum || p.count || '-' }}</td>
-                  <td>{{ p.typemoney || p.amount || '-' }}</td>
-                  <td v-if="lottery !== 'ssq'">{{ p.total || '-' }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
+    <div class="card" v-if="prizes.length">
+      <h2>奖项明细</h2>
+      <div class="table-wrap">
+        <table><thead><tr><th>奖项</th><th>中奖注数</th><th>单注金额</th><th v-if="lottery==='dlt'">总金额</th></tr></thead>
+        <tbody>
+          <tr v-for="p in prizes" :key="p.type||p.level">
+            <td class="highlight">{{p.type?ssqName(p.type):(p.level||'')}}</td>
+            <td>{{p.typenum||p.count||'-'}}</td>
+            <td>{{p.typemoney||p.amount||'-'}}</td>
+            <td v-if="lottery==='dlt'">{{p.total||'-'}}</td>
+          </tr>
+        </tbody></table>
       </div>
     </div>
-  `,
-  methods: {
-    formatMoney(v) {
-      if (!v) return '-';
-      if (v >= 1e8) return (v / 1e8).toFixed(2) + '亿';
-      if (v >= 1e4) return (v / 1e4).toFixed(0) + '万';
-      return v.toLocaleString();
-    },
-    ssqName(type) {
-      const names = { 1: '一等奖', 2: '二等奖', 3: '三等奖', 4: '四等奖', 5: '五等奖', 6: '六等奖' };
-      return names[type] || ('奖' + type);
-    }
-  }
+  </div>
+</div>`
 };
 
-// --- Check Page ---
-const CheckPage = {
-  setup() {
-    const lottery = ref('ssq');
-    const code = ref('');
-    const codes = ref([]);
-    const inputText = ref('');
-    const results = ref(null);
-    const loading = ref(false);
-    const error = ref('');
-    const dragover = ref(false);
+// --- CheckPage ---
+const CheckPage={
+  setup(){
+    const lottery=ref('ssq');
+    const code=ref('');
+    const codes=ref([]);
+    const inputText=ref('');
+    const results=ref(null);
+    const loading=ref(true);
+    const checking=ref(false);
+    const error=ref('');
+    const dragover=ref(false);
 
-    // Load recent codes for autocomplete
-    async function loadCodes() {
-      try {
-        const resp = await fetch(`${API}/api/draws?lottery=${lottery.value}&page_size=50`);
-        const data = await resp.json();
-        codes.value = (data.items || []).map(d => d.code);
-        if (codes.value.length && !code.value) {
-          code.value = codes.value[0];
-        }
-      } catch (e) { console.error(e); }
+    async function loadCodes(){
+      loading.value=true;
+      try{
+        const data=await loadData();
+        codes.value=(data[lottery.value]||[]).map(d=>d.code);
+        if(codes.value.length&&!code.value)code.value=codes.value[0];
+      }catch(e){console.error(e)}
+      finally{loading.value=false}
     }
 
-    function switchLottery(lt) {
-      lottery.value = lt;
-      code.value = '';
-      results.value = null;
-      loadCodes();
+    function switchLottery(lt){
+      lottery.value=lt;code.value='';results.value=null;loadCodes();
     }
 
-    async function doCheck() {
-      if (!code.value) { error.value = '请选择期号'; return; }
-      error.value = '';
-      loading.value = true;
-
-      // Parse tickets from input text
-      const lines = inputText.value.trim().split('\n').filter(l => l.trim());
-      const tickets = [];
-      for (const line of lines) {
-        const parsed = parseLine(line.trim(), lottery.value);
-        if (parsed) tickets.push(parsed);
-      }
-
-      if (!tickets.length) { error.value = '请输入至少一组有效号码'; loading.value = false; return; }
-
-      try {
-        const resp = await fetch(`${API}/api/check`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ lottery: lottery.value, code: code.value, tickets }),
-        });
-        const data = await resp.json();
-        if (data.error) { error.value = data.error; }
-        else { results.value = data; }
-      } catch (e) {
-        error.value = '请求失败: ' + e.message;
-      } finally {
-        loading.value = false;
-      }
+    function doCheck(){
+      if(!code.value){error.value='请选择期号';return}
+      error.value='';checking.value=true;
+      const lines=inputText.value.trim().split('\n').filter(l=>l.trim());
+      const tickets=[];
+      for(const line of lines){const p=parseLine(line.trim(),lottery.value);if(p)tickets.push(p)}
+      if(!tickets.length){error.value='请输入至少一组有效号码';checking.value=false;return}
+      const data=allData.value;
+      const items=data[lottery.value]||[];
+      const draw=items.find(d=>d.code===code.value);
+      if(!draw){error.value='未找到该期数据';checking.value=false;return}
+      const checkResults=tickets.map(t=>{
+        const r=lottery.value==='ssq'?checkSSQ(t,draw):checkDLT(t,draw);
+        return r?{ticket:t,...r}:{ticket:t,prize:null,name:'未中奖',amount:'0'};
+      });
+      const ds={code:draw.code,draw_date:draw.draw_date,
+        ...(lottery.value==='ssq'?{red:draw.red,blue:draw.blue}:{front:draw.front,back:draw.back})};
+      results.value={draw:ds,results:checkResults};
+      checking.value=false;
     }
 
-    async function handleUpload(e) {
-      const file = e.target.files[0] || (e.dataTransfer && e.dataTransfer.files[0]);
-      if (!file) return;
-      dragover.value = false;
-
-      const text = await file.text();
-      inputText.value = text;
-    }
-
-    function parseLine(line, lt) {
-      line = line.replace(/ \+ /g, '|').replace(/\+/g, '|');
-      const parts = line.split('|');
-
-      if (lt === 'ssq') {
-        if (parts.length === 2) {
-          const reds = parts[0].trim().replace(/ /g, ',').replace(/,,/g, ',').split(',').filter(Boolean);
-          const blue = parts[1].trim().replace(/ /g, '');
-          if (reds.length === 6 && blue) return { red: reds.map(n => n.padStart(2,'0')).join(','), blue: blue.padStart(2,'0') };
-        } else {
-          const nums = line.replace(/ /g, ',').replace(/,,/g, ',').split(',').filter(Boolean);
-          if (nums.length === 7) return { red: nums.slice(0,6).map(n => n.padStart(2,'0')).join(','), blue: nums[6].padStart(2,'0') };
-        }
-      } else {
-        if (parts.length === 2) {
-          const fronts = parts[0].trim().replace(/ /g, ',').replace(/,,/g, ',').split(',').filter(Boolean);
-          const backs = parts[1].trim().replace(/ /g, ',').replace(/,,/g, ',').split(',').filter(Boolean);
-          if (fronts.length === 5 && backs.length === 2) return { front: fronts.map(n => n.padStart(2,'0')).join(','), back: backs.map(n => n.padStart(2,'0')).join(',') };
-        } else {
-          const nums = line.replace(/ /g, ',').replace(/,,/g, ',').split(',').filter(Boolean);
-          if (nums.length === 7) return { front: nums.slice(0,5).map(n => n.padStart(2,'0')).join(','), back: nums.slice(5,7).map(n => n.padStart(2,'0')).join(',') };
-        }
-      }
-      return null;
+    async function handleUpload(e){
+      const file=e.target.files[0]||(e.dataTransfer&&e.dataTransfer.files[0]);
+      if(!file)return;dragover.value=false;
+      inputText.value=await file.text();
     }
 
     onMounted(loadCodes);
 
-    return { lottery, code, codes, inputText, results, loading, error, dragover,
-             switchLottery, doCheck, handleUpload };
+    return{lottery,code,codes,inputText,results,loading,checking,error,dragover,
+           switchLottery,doCheck,handleUpload};
   },
-  template: `
-    <div>
-      <h2 style="margin-bottom:20px;color:#f1f5f9">兑奖查询</h2>
-
-      <div class="tabs" style="margin-bottom:16px">
-        <div class="tab" :class="{ active: lottery === 'ssq' }" @click="switchLottery('ssq')">双色球</div>
-        <div class="tab" :class="{ active: lottery === 'dlt' }" @click="switchLottery('dlt')">大乐透</div>
-      </div>
-
-      <div class="form-row">
-        <label>开奖期号:</label>
-        <select v-model="code" style="min-width:160px">
-          <option v-for="c in codes" :key="c" :value="c">{{ c }}</option>
-        </select>
-      </div>
-
-      <div class="check-section">
-        <div>
-          <div class="card">
-            <h2>输入号码</h2>
-            <p class="hint" v-if="lottery === 'ssq'" style="margin-bottom:8px">
-              每行一组，格式: 01 04 19 22 24 25 + 15 或 01,04,19,22,24,25|15
-            </p>
-            <p class="hint" v-else style="margin-bottom:8px">
-              每行一组，格式: 01 05 12 20 25 + 03 08 或 01,05,12,20,25|03,08
-            </p>
-            <textarea v-model="inputText" :placeholder="lottery === 'ssq' ? '01 04 19 22 24 25 + 15\\n02 08 15 20 30 33 + 07' : '01 05 12 20 25 + 03 08\\n02 10 18 25 33 + 05 11'"></textarea>
-            <div style="margin-top:12px">
-              <button class="btn btn-primary" @click="doCheck" :disabled="loading">
-                {{ loading ? '查询中...' : '开始兑奖' }}
-              </button>
-            </div>
-          </div>
-        </div>
-        <div>
-          <div class="card">
-            <h2>文件导入</h2>
-            <p class="hint" style="margin-bottom:12px">支持 .txt / .csv 文件，每行一组号码</p>
-            <div class="upload-zone" :class="{ dragover }"
-                 @dragover.prevent="dragover = true"
-                 @dragleave="dragover = false"
-                 @drop.prevent="handleUpload($event)"
-                 @click="$refs.fileInput.click()">
-              <div>拖拽文件到此处 或 点击选择文件</div>
-            </div>
-            <input type="file" ref="fileInput" style="display:none" accept=".txt,.csv" @change="handleUpload($event)">
-          </div>
-        </div>
-      </div>
-
-      <div v-if="error" style="color:#f87171;margin-top:12px">{{ error }}</div>
-
-      <div v-if="results" class="card result-table" style="margin-top:16px">
-        <h2>兑奖结果</h2>
-        <div style="margin-bottom:12px;color:#94a3b8;font-size:13px">
-          开奖号码:
-          <template v-if="lottery === 'ssq'">
-            <span class="balls">
-              <span v-for="n in (results.draw.red || '').split(',')" class="ball ball-red" style="width:24px;height:24px;font-size:11px">{{ n }}</span>
-              <span class="ball ball-blue" style="width:24px;height:24px;font-size:11px">{{ results.draw.blue }}</span>
-            </span>
-          </template>
-          <template v-else>
-            <span class="balls">
-              <span v-for="n in (results.draw.front || '').split(',')" class="ball ball-red" style="width:24px;height:24px;font-size:11px">{{ n }}</span>
-              <span v-for="n in (results.draw.back || '').split(',')" class="ball ball-blue" style="width:24px;height:24px;font-size:11px">{{ n }}</span>
-            </span>
-          </template>
-        </div>
-
-        <div class="summary">
-          <span class="tag">共 {{ results.results.length }} 注</span>
-          <span class="tag" style="background:#854d0e;color:#fbbf24">中奖 {{ results.results.filter(r => r.prize).length }} 注</span>
-        </div>
-
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr><th>#</th><th>号码</th><th>结果</th><th>金额</th></tr>
-            </thead>
-            <tbody>
-              <tr v-for="(r, i) in results.results" :key="i">
-                <td>{{ i + 1 }}</td>
-                <td>
-                  <template v-if="lottery === 'ssq'">
-                    {{ r.ticket.red }} + {{ r.ticket.blue }}
-                  </template>
-                  <template v-else>
-                    {{ r.ticket.front }} + {{ r.ticket.back }}
-                  </template>
-                </td>
-                <td :class="r.prize ? 'win' : 'lose'">{{ r.name }}</td>
-                <td :class="r.prize ? 'win' : 'lose'">{{ r.amount }}{{ r.prize ? '元' : '' }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+  template:`
+<div>
+  <h2 style="margin-bottom:20px;color:#f1f5f9">兑奖查询</h2>
+  <div class="tabs" style="margin-bottom:16px">
+    <div class="tab" :class="{active:lottery==='ssq'}" @click="switchLottery('ssq')">双色球</div>
+    <div class="tab" :class="{active:lottery==='dlt'}" @click="switchLottery('dlt')">大乐透</div>
+  </div>
+  <div class="form-row">
+    <label>开奖期号:</label>
+    <select v-model="code" style="min-width:160px">
+      <option v-for="c in codes" :key="c" :value="c">{{c}}</option>
+    </select>
+    <span v-if="loading" style="color:#94a3b8;font-size:13px">加载中...</span>
+  </div>
+  <div class="check-section">
+    <div class="card">
+      <h2>输入号码</h2>
+      <p class="hint" style="margin-bottom:8px" v-if="lottery==='ssq'">每行一组，格式: 01 04 19 22 24 25 + 15</p>
+      <p class="hint" style="margin-bottom:8px" v-else>每行一组，格式: 01 05 12 20 25 + 03 08</p>
+      <textarea v-model="inputText" :placeholder="lottery==='ssq'?'01 04 19 22 24 25 + 15':'01 05 12 20 25 + 03 08'"></textarea>
+      <div style="margin-top:12px">
+        <button class="btn btn-primary" @click="doCheck" :disabled="checking">{{checking?'查询中...':'开始兑奖'}}</button>
       </div>
     </div>
-  `
+    <div class="card">
+      <h2>文件导入</h2>
+      <p class="hint" style="margin-bottom:12px">支持 .txt/.csv，每行一组号码</p>
+      <div class="upload-zone" :class="{dragover}" @dragover.prevent="dragover=true" @dragleave="dragover=false" @drop.prevent="handleUpload($event)" @click="$refs.fileInput.click()">
+        <div>拖拽文件到此处 或 点击选择</div>
+      </div>
+      <input type="file" ref="fileInput" style="display:none" accept=".txt,.csv" @change="handleUpload($event)">
+    </div>
+  </div>
+  <div v-if="error" style="color:#f87171;margin-top:12px">{{error}}</div>
+  <div v-if="results" class="card" style="margin-top:16px">
+    <h2>兑奖结果</h2>
+    <div style="margin-bottom:12px;color:#94a3b8;font-size:13px">
+      开奖号码:
+      <template v-if="lottery==='ssq'">
+        <span class="balls"><span v-for="n in (results.draw.red||'').split(',')" class="ball ball-red" style="width:24px;height:24px;font-size:11px">{{n}}</span><span class="ball ball-blue" style="width:24px;height:24px;font-size:11px">{{results.draw.blue}}</span></span>
+      </template>
+      <template v-else>
+        <span class="balls"><span v-for="n in (results.draw.front||'').split(',')" class="ball ball-red" style="width:24px;height:24px;font-size:11px">{{n}}</span><span v-for="n in (results.draw.back||'').split(',')" class="ball ball-blue" style="width:24px;height:24px;font-size:11px">{{n}}</span></span>
+      </template>
+    </div>
+    <div class="summary">
+      <span class="tag">共 {{results.results.length}} 注</span>
+      <span class="tag" style="background:#854d0e;color:#fbbf24">中奖 {{results.results.filter(r=>r.prize).length}} 注</span>
+    </div>
+    <div class="table-wrap">
+      <table><thead><tr><th>#</th><th>号码</th><th>结果</th><th>金额</th></tr></thead>
+      <tbody>
+        <tr v-for="(r,i) in results.results" :key="i">
+          <td>{{i+1}}</td>
+          <td><template v-if="lottery==='ssq'">{{r.ticket.red}} + {{r.ticket.blue}}</template><template v-else>{{r.ticket.front}} + {{r.ticket.back}}</template></td>
+          <td :class="r.prize?'win':'lose'">{{r.name}}</td>
+          <td :class="r.prize?'win':'lose'">{{r.amount}}{{r.prize?'元':''}}</td>
+        </tr>
+      </tbody></table>
+    </div>
+  </div>
+</div>`
 };
 
-// --- Router ---
-const router = createRouter({
-  history: createWebHashHistory(),
-  routes: [
-    { path: '/', component: DrawList },
-    { path: '/draw/:lottery/:code', component: DrawDetail },
-    { path: '/check', component: CheckPage },
-  ],
+const router=createRouter({
+  history:createWebHashHistory(),
+  routes:[
+    {path:'/',component:DrawList},
+    {path:'/draw/:lottery/:code',component:DrawDetail},
+    {path:'/check',component:CheckPage}
+  ]
 });
 
-const app = createApp({});
-app.use(router);
-app.mount('#app');
+createApp({}).use(router).mount('#app');
 </script>
 </body>
 </html>
