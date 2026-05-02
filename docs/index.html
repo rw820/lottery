@@ -490,6 +490,36 @@ const app=createApp({
       return null;
     }
 
+    async function fetchHTML(url){
+      // Try CORS proxies for HTML pages
+      const proxies=['https://corsproxy.io/?url=','https://api.allorigins.win/raw?url='];
+      for(const proxy of proxies){
+        try{const r=await fetch(proxy+encodeURIComponent(url),{signal:AbortSignal.timeout(15000)});if(r.ok){return await r.text()}}catch(e){}
+      }
+      return null;
+    }
+
+    async function fetchFuyunPrize(code){
+      // Fetch SSQ prize data from 500.com detail page to get 福运奖 (type 7)
+      const short=code.slice(2); // 2026047 -> 26047
+      const url='https://kaijiang.500.com/shtml/ssq/'+short+'.shtml';
+      const html=await fetchHTML(url);
+      if(!html)return null;
+      try{
+        const rows=html.match(/<tr[^>]*>([\s\S]*?)<\/tr>/gi)||[];
+        const prizes=[];
+        const order={'一等奖':1,'二等奖':2,'三等奖':3,'四等奖':4,'五等奖':5,'六等奖':6,'福运奖':7,'幸运奖':7};
+        for(const row of rows){
+          const cells=row.match(/<td[^>]*>([\s\S]*?)<\/td>/gi)||[];
+          const vals=cells.map(c=>c.replace(/<[^>]+>/g,'').trim());
+          if(vals.length>=3&&order[vals[0]]&&vals[1].replace(/,/g,'').trim()&&/^\d+$/.test(vals[1].replace(/,/g,'').trim())){
+            prizes.push({type:order[vals[0]],typenum:vals[1].replace(/,/g,'').trim(),typemoney:vals[2].replace(/,/g,'').trim()});
+          }
+        }
+        return prizes.length>=6?prizes:null;
+      }catch(e){return null}
+    }
+
     async function refreshData(){
       refreshing.value=true;refreshOk.value=false;
       await loadData();
@@ -504,6 +534,17 @@ const app=createApp({
           const items=d.result.filter(x=>!existing.has(x.code));
           if(items.length){
             const mapped=items.map(x=>{let pgParsed=[];try{pgParsed=JSON.parse(x.prizegrades||'[]')}catch(e){}return{code:x.code,draw_date:x.date,week_day:x.week||'',red:x.red,blue:x.blue,sales:+x.sales,pool_money:+x.poolbalance,content:x.content||'',prize_grades:x.prizegrades||'',prize_grades_parsed:isFuyunActive({code:x.code,pool_money:+x.poolbalance})?pgParsed.map(p=>p.type===7&&!p.typenum?{...p,typenum:'-',typemoney:'5'}:p):pgParsed}});
+            // Fetch 福运奖 data from 500.com for draws that qualify
+            const fuyunCodes=mapped.filter(d=>isFuyunActive(d)&&(!d.prize_grades_parsed.find(p=>p.type===7)||!d.prize_grades_parsed.find(p=>p.type===7)?.typenum||d.prize_grades_parsed.find(p=>p.type===7)?.typenum==='-'));
+            if(fuyunCodes.length){
+              const results=await Promise.allSettled(fuyunCodes.map(d=>fetchFuyunPrize(d.code)));
+              results.forEach((r,i)=>{
+                if(r.status==='fulfilled'&&r.value){
+                  fuyunCodes[i].prize_grades_parsed=r.value;
+                  fuyunCodes[i].prize_grades=JSON.stringify(r.value);
+                }
+              });
+            }
             allData.value={...allData.value,ssq:[...mapped,...allData.value.ssq]};newDraws+=items.length;
           }
         }
