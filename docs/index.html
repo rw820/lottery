@@ -111,8 +111,10 @@ select:focus,input:focus{outline:none;border-color:#3b82f6}
 .win-row .prize{color:#fbbf24}
 .win-row .date{color:#64748b}
 .empty-state{text-align:center;padding:40px;color:#475569}
-.expand-btn{background:none;border:none;color:#64748b;cursor:pointer;font-size:10px;padding:2px 6px;border-radius:4px;line-height:1;transition:all .2s}
-.expand-btn:hover{color:#e2e8f0;background:#334155}
+.expand-btn{background:#1e3a5f;border:1px solid #3b82f6;color:#bfdbfe;cursor:pointer;font-size:11px;padding:2px 8px;border-radius:4px;line-height:1;transition:all .2s;white-space:nowrap}
+.expand-btn:hover{background:#2563eb;color:#fff}
+.expand-btn.is-open{background:#854d0e;border-color:#fbbf24;color:#fde68a}
+.expand-btn.is-open:hover{background:#a16207;color:#fff}
 .expand-row td{background:#0f172a;padding:0!important}
 .prize-mini-table{padding:8px 16px 12px}
 .prize-mini-table table{width:100%;font-size:12px}
@@ -256,9 +258,9 @@ const DrawList={
   <div v-if="loading" class="loading-box">加载中...</div>
   <div v-else-if="!items.length" class="loading-box">暂无数据</div>
   <div v-else>
-    <div class="table-wrap"><table><thead><tr><th style="width:32px"></th><th>期号</th><th>日期</th><th>开奖号码</th><th>销售额</th><th>奖池</th></tr></thead>
+    <div class="table-wrap"><table><thead><tr><th style="width:54px">明细</th><th>期号</th><th>日期</th><th>开奖号码</th><th>销售额</th><th>奖池</th></tr></thead>
     <tbody><template v-for="d in items" :key="d.code"><tr @click="$router.push('/draw/'+lottery+'/'+d.code)">
-      <td @click.stop><button class="expand-btn" @click.stop="toggleExpand(d.code)">{{expanded[d.code]?'▼':'▶'}}</button></td>
+      <td @click.stop><button class="expand-btn" :class="{'is-open':expanded[d.code]}" @click.stop="toggleExpand(d.code)">{{expanded[d.code]?'收起':'展开'}}</button></td>
       <td>{{d.code}}</td><td>{{d.draw_date}}</td><td>
         <span class="balls" v-if="lottery==='ssq'"><span v-for="n in (d.red||'').split(',')" class="ball ball-red">{{n}}</span><span class="ball ball-blue">{{d.blue}}</span></span>
         <span class="balls" v-else><span v-for="n in (d.front||'').split(',')" class="ball ball-red">{{n}}</span><span v-for="n in (d.back||'').split(',')" class="ball ball-blue">{{n}}</span></span>
