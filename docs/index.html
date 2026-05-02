@@ -203,25 +203,46 @@ function checkSSQ(ticket,draw){
 function checkDLT(ticket,draw){
   const tF=new Set(ticket.front.split(',')),tB=new Set(ticket.back.split(',')),dF=new Set(draw.front.split(',')),dB=new Set(draw.back.split(','));
   let fm=0,bm=0;tF.forEach(n=>{if(dF.has(n))fm++});tB.forEach(n=>{if(dB.has(n))bm++});
+  const code=draw.code;
   let p=null;
-  if(fm===5&&bm===2)p=1;else if(fm===5&&bm===1)p=2;else if(fm===5&&bm===0)p=3;
-  else if(fm===4&&bm===2)p=4;else if(fm===4&&bm===1)p=5;else if(fm===3&&bm===2)p=6;
-  else if((fm===4&&bm===0)||(fm===3&&bm===1)||(fm===2&&bm===2))p=7;
-  else if((fm===3&&bm===0)||(fm===2&&bm===1)||(fm===1&&bm===2)||(fm===0&&bm===2))p=8;
-  else if((fm===2&&bm===0)||(fm===1&&bm===1)||(fm===0&&bm===1))p=9;
+  // DLT rule periods: <14052=8tiers, 14052-19018=6tiers, 19019-26013=9tiers, >=26014=7tiers
+  if(code>='26014'){
+    if(fm===5&&bm===2)p=1;else if(fm===5&&bm===1)p=2;
+    else if(fm===5&&bm===0||(fm===4&&bm===2))p=3;
+    else if(fm===4&&bm===1)p=4;
+    else if(fm===4&&bm===0||(fm===3&&bm===2))p=5;
+    else if(fm===3&&bm===1||(fm===2&&bm===2))p=6;
+    else if(fm===3&&bm===0||(fm===2&&bm===1)||(fm===1&&bm===2)||(fm===0&&bm===2))p=7;
+  }else if(code>='19019'){
+    if(fm===5&&bm===2)p=1;else if(fm===5&&bm===1)p=2;else if(fm===5&&bm===0)p=3;
+    else if(fm===4&&bm===2)p=4;else if(fm===4&&bm===1)p=5;else if(fm===3&&bm===2)p=6;
+    else if(fm===4&&bm===0)p=7;
+    else if(fm===3&&bm===1||(fm===2&&bm===2))p=8;
+    else if(fm===3&&bm===0||(fm===2&&bm===1)||(fm===1&&bm===2)||(fm===0&&bm===2))p=9;
+  }else if(code>='14052'){
+    if(fm===5&&bm===2)p=1;else if(fm===5&&bm===1)p=2;else if(fm===5&&bm===0)p=3;
+    else if(fm===4&&bm===2||(fm===4&&bm===1)||(fm===3&&bm===2))p=4;
+    else if(fm===4&&bm===0||(fm===3&&bm===1)||(fm===2&&bm===2))p=5;
+    else if(fm===3&&bm===0||(fm===2&&bm===1)||(fm===1&&bm===2)||(fm===0&&bm===2))p=6;
+  }else{
+    if(fm===5&&bm===2)p=1;else if(fm===5&&bm===1)p=2;else if(fm===5&&bm===0)p=3;
+    else if(fm===4&&bm===2)p=4;else if(fm===4&&bm===1||(fm===3&&bm===2))p=5;
+    else if(fm===4&&bm===0||(fm===3&&bm===1)||(fm===2&&bm===2))p=6;
+    else if(fm===3&&bm===0||(fm===2&&bm===1)||(fm===1&&bm===2)||(fm===0&&bm===2))p=7;
+    else if(fm===2&&bm===0||(fm===1&&bm===1)||(fm===0&&bm===1))p=8;
+  }
   if(!p)return null;
   let amt='浮动';
   const target=DLT_NAMES[p];
   const grades=draw.prize_grades_parsed||[];
   for(const g of grades){
     const lv=String(g.level||'');
-    // Match exact level name, excluding 追加 entries
-    if(lv&&lv.includes(target)&&!lv.includes('追加')&&!lv.includes('追加')){
+    if(lv&&lv.includes(target)&&!lv.includes('追加')){
       const m=g.amount||g.typemoney||'';if(m)amt=m;break;
     }
   }
   if(amt==='浮动'&&!grades.length&&draw.prize_grades){
-    try{const pg=JSON.parse(draw.prize_grades);for(const g of pg){const lv=String(g.level||'');if(lv.includes(target)&&!lv.includes('追加')&&!lv.includes('追加')){amt=g.amount||'浮动';break}}}catch(e){}
+    try{const pg=JSON.parse(draw.prize_grades);for(const g of pg){const lv=String(g.level||'');if(lv.includes(target)&&!lv.includes('追加')){amt=g.amount||'浮动';break}}}catch(e){}
   }
   return{prize:p,name:DLT_NAMES[p],amount:amt};
 }
