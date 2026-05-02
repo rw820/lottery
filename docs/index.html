@@ -162,18 +162,18 @@ function dltCondition(name,code){
   const m={
     '一等奖': '5+2','二等奖': '5+1',
     '三等奖': code>='26014'?'5+0 / 4+2':code>='19019'?'5+0':'5+0',
-    '四等奖': code>='26014'?'4+1':code>='19019'?'4+2':'4+2 / 4+1 / 3+2',
-    '五等奖': code>='26014'?'4+0 / 3+2':code>='19019'?'4+1':code>='14052'?'4+0 / 3+1 / 2+2':'4+1 / 3+2 / 2+2 / 1+2',
+    '四等奖': code>='26014'?'4+1':code>='19019'?'4+2':code>='14052'?'4+2 / 4+1 / 3+2':'4+2',
+    '五等奖': code>='26014'?'4+0 / 3+2':code>='19019'?'4+1':code>='14052'?'4+0 / 3+1 / 2+2':'4+1 / 3+2',
     '六等奖': code>='26014'?'3+1 / 2+2':code>='19019'?'3+2':code>='14052'?'3+0 / 2+1 / 1+2 / 0+2':'4+0 / 3+1 / 2+2',
     '七等奖': code>='26014'?'3+0 / 2+1 / 1+2 / 0+2':code>='19019'?'4+0':code>='14052'?'':'3+0 / 2+1 / 1+2 / 0+2',
-    '八等奖': code>='26014'?'':code>='19019'?'3+1 / 2+2':code>='14052'?'':'3+1 / 2+2',
-    '九等奖': code>='26014'?'':code>='19019'?'3+0 / 2+1 / 1+2 / 0+2':code>='14052'?'':'3+0 / 2+1 / 1+2 / 0+2',
+    '八等奖': code>='26014'?'':code>='19019'?'3+1 / 2+2':code>='14052'?'':'2+0 / 1+1 / 0+1',
+    '九等奖': code>='26014'?'':code>='19019'?'3+0 / 2+1 / 1+2 / 0+2':code>='14052'?'':'',
   };
   if(!name)return'';const base=name.replace('(追加)','');
   return m[base]||'';
 }
 
-function formatMoney(v){if(!v)return'-';if(v>=1e8)return(v/1e8).toFixed(2)+'亿';if(v>=1e4)return(v/1e4).toFixed(0)+'万';return v.toLocaleString()}
+function sortDLTPrizes(prizes){if(!prizes||!prizes.length||!prizes[0].level)return prizes||[];const o={'一等奖':1,'二等奖':2,'三等奖':3,'四等奖':4,'五等奖':5,'六等奖':6,'七等奖':7,'八等奖':8,'九等奖':9};return[...prizes].sort((a,b)=>{const la=o[(a.level||'').replace('(追加)','')]||99;const lb=o[(b.level||'').replace('(追加)','')]||99;if(la!==lb)return la-lb;return(a.level||'').includes('追加')?1:(b.level||'').includes('追加')?-1:0})};function formatMoney(v){if(!v)return'-';if(v>=1e8)return(v/1e8).toFixed(2)+'亿';if(v>=1e4)return(v/1e4).toFixed(0)+'万';return v.toLocaleString()}
 function parseMoneyInt(s){if(!s)return 0;if(s==='浮动')return 0;s=String(s).replace(/[,，]/g,'');const n=parseInt(s);return isNaN(n)?0:n}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
 
@@ -290,7 +290,7 @@ const DrawList={
     function goto(p){if(p<1||p>totalPages.value)return;page.value=p;window.scrollTo({top:0,behavior:'smooth'})}
     const pageNumbers=computed(()=>{const pages=[];const tp=totalPages.value,cp=page.value;let s=Math.max(1,cp-3),e=Math.min(tp,cp+3);if(s>1)pages.push(1);if(s>2)pages.push('...');for(let i=s;i<=e;i++)pages.push(i);if(e<tp-1)pages.push('...');if(e<tp)pages.push(tp);return pages});
     // init now inline via onMounted above
-    return{lottery,page,items,total,totalPages,loading,codeSearch,switchLottery,goto,searchCode,pageNumbers,formatMoney,expanded,toggleExpand,ssqName,ssqCondition,dltCondition};
+    return{lottery,page,items,total,totalPages,loading,codeSearch,switchLottery,goto,searchCode,pageNumbers,formatMoney,expanded,toggleExpand,ssqName,ssqCondition,dltCondition,sortDLTPrizes};
   },
   template:`<div>
   <div class="tabs"><div class="tab" :class="{active:lottery==='ssq'}" @click="switchLottery('ssq')">双色球</div><div class="tab" :class="{active:lottery==='dlt'}" @click="switchLottery('dlt')">大乐透</div></div>
@@ -307,7 +307,7 @@ const DrawList={
       </td><td>{{formatMoney(d.sales)}}</td><td>{{formatMoney(d.pool_money)}}</td>
     </tr>
     <tr v-if="expanded[d.code]" class="expand-row" @click.stop><td colspan="6"><div class="prize-mini-table"><table><thead><tr><th>奖项</th><th>条件</th><th>中奖注数</th><th>单注奖金</th><th v-if="lottery==='dlt'">总奖金</th></tr></thead>
-    <tbody><tr v-for="p in (d.prize_grades_parsed||[]).filter(p=>(p.typenum||p.count)!==''||(p.typemoney||p.amount)!=='')" :key="p.type||p.level"><td class="highlight">{{lottery==='ssq'?ssqName(p.type):p.level}}</td><td style="font-size:11px;color:#94a3b8">{{lottery==='ssq'?ssqCondition(p.type):dltCondition(p.level,d.code)}}</td><td>{{p.typenum||p.count||'-'}}</td><td>{{p.typemoney||p.amount||'-'}}</td><td v-if="lottery==='dlt'">{{p.total||'-'}}</td></tr></tbody></table></div></td></tr></template></tbody></table></div>
+    <tbody><tr v-for="p in sortDLTPrizes(d.prize_grades_parsed||[]).filter(p=>(p.typenum||p.count)!==''||(p.typemoney||p.amount)!=='')" :key="p.type||p.level"><td class="highlight">{{lottery==='ssq'?ssqName(p.type):p.level}}</td><td style="font-size:11px;color:#94a3b8">{{lottery==='ssq'?ssqCondition(p.type):dltCondition(p.level,d.code)}}</td><td>{{p.typenum||p.count||'-'}}</td><td>{{p.typemoney||p.amount||'-'}}</td><td v-if="lottery==='dlt'">{{p.total||'-'}}</td></tr></tbody></table></div></td></tr></template></tbody></table></div>
     <div class="pagination"><button :disabled="page<=1" @click="goto(page-1)">上一页</button>
       <div class="page-nums"><span v-for="p in pageNumbers" :key="p" :class="['page-num',{active:p===page}]" @click="typeof p==='number'&&goto(p)">{{p}}</span></div>
       <span>共{{total}}期</span><button :disabled="page>=totalPages" @click="goto(page+1)">下一页</button></div>
@@ -318,8 +318,8 @@ const DrawDetail={
   setup(){
     const route=VueRouter.useRoute();const draw=ref(null);const loading=ref(true);
     onMounted(async()=>{loading.value=true;try{const d=await loadData();draw.value=(d[route.params.lottery]||[]).find(d=>d.code===route.params.code)||null}catch(e){console.error(e)}finally{loading.value=false}});
-    const prizes=computed(()=>draw.value?.prize_grades_parsed||[]);
-    return{draw,loading,prizes,lottery:route.params.lottery,formatMoney,ssqName:t=>SSQ_NAMES[t]||('奖'+t),ssqCondition,dltCondition};
+    const prizes=computed(()=>sortDLTPrizes(draw.value?.prize_grades_parsed||[]));
+    return{draw,loading,prizes,lottery:route.params.lottery,formatMoney,ssqName:t=>SSQ_NAMES[t]||('奖'+t),ssqCondition,dltCondition,sortDLTPrizes};
   },
   template:`<div><div class="back-link"><router-link to="/">&larr; 返回</router-link></div>
   <div v-if="loading" class="loading-box">加载中...</div>
@@ -335,7 +335,7 @@ const DrawDetail={
       <div class="stat-row"><div class="stat-item"><div class="label">销售额</div><div class="value">{{formatMoney(draw.sales)}}</div></div><div class="stat-item"><div class="label">奖池</div><div class="value">{{formatMoney(draw.pool_money)}}</div></div></div>
     </div></div>
     <div class="card" v-if="prizes.length"><h2>奖项明细</h2><div class="table-wrap"><table><thead><tr><th>奖项</th><th>条件</th><th>注数</th><th>单注金额</th><th v-if="lottery==='dlt'">总金额</th></tr></thead>
-    <tbody><tr v-for="p in prizes.filter(p=>(p.typenum||p.count)!==''||(p.typemoney||p.amount)!=='')" :key="p.type||p.level"><td class="highlight">{{p.type?ssqName(p.type):(p.level||'')}}</td><td style="font-size:12px;color:#94a3b8">{{lottery==='ssq'?ssqCondition(p.type):dltCondition(p.level,draw.code)}}</td><td>{{p.typenum||p.count||'-'}}</td><td>{{p.typemoney||p.amount||'-'}}</td><td v-if="lottery==='dlt'">{{p.total||'-'}}</td></tr></tbody></table></div></div>
+    <tbody><tr v-for="p in sortDLTPrizes(prizes).filter(p=>(p.typenum||p.count)!==''||(p.typemoney||p.amount)!=='')" :key="p.type||p.level"><td class="highlight">{{p.type?ssqName(p.type):(p.level||'')}}</td><td style="font-size:12px;color:#94a3b8">{{lottery==='ssq'?ssqCondition(p.type):dltCondition(p.level,draw.code)}}</td><td>{{p.typenum||p.count||'-'}}</td><td>{{p.typemoney||p.amount||'-'}}</td><td v-if="lottery==='dlt'">{{p.total||'-'}}</td></tr></tbody></table></div></div>
   </div></div>`
 };
 
