@@ -269,7 +269,7 @@ const DrawList={
     function goto(p){if(p<1||p>totalPages.value)return;page.value=p;window.scrollTo({top:0,behavior:'smooth'})}
     const pageNumbers=computed(()=>{const pages=[];const tp=totalPages.value,cp=page.value;let s=Math.max(1,cp-3),e=Math.min(tp,cp+3);if(s>1)pages.push(1);if(s>2)pages.push('...');for(let i=s;i<=e;i++)pages.push(i);if(e<tp-1)pages.push('...');if(e<tp)pages.push(tp);return pages});
     // init now inline via onMounted above
-    return{lottery,page,items,total,totalPages,loading,codeSearch,switchLottery,goto,searchCode,pageNumbers,formatMoney,expanded,toggleExpand,ssqName};
+    return{lottery,page,items,total,totalPages,loading,codeSearch,switchLottery,goto,searchCode,pageNumbers,formatMoney,expanded,toggleExpand,ssqName,ssqCondition,dltCondition};
   },
   template:`<div>
   <div class="tabs"><div class="tab" :class="{active:lottery==='ssq'}" @click="switchLottery('ssq')">双色球</div><div class="tab" :class="{active:lottery==='dlt'}" @click="switchLottery('dlt')">大乐透</div></div>
@@ -298,7 +298,7 @@ const DrawDetail={
     const route=VueRouter.useRoute();const draw=ref(null);const loading=ref(true);
     onMounted(async()=>{loading.value=true;try{const d=await loadData();draw.value=(d[route.params.lottery]||[]).find(d=>d.code===route.params.code)||null}catch(e){console.error(e)}finally{loading.value=false}});
     const prizes=computed(()=>draw.value?.prize_grades_parsed||[]);
-    return{draw,loading,prizes,lottery:route.params.lottery,formatMoney,ssqName:t=>SSQ_NAMES[t]||('奖'+t)};
+    return{draw,loading,prizes,lottery:route.params.lottery,formatMoney,ssqName:t=>SSQ_NAMES[t]||('奖'+t),ssqCondition,dltCondition};
   },
   template:`<div><div class="back-link"><router-link to="/">&larr; 返回</router-link></div>
   <div v-if="loading" class="loading-box">加载中...</div>
