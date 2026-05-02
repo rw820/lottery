@@ -156,6 +156,23 @@ const DLT_API='https://webapi.sporttery.cn/gateway/lottery/getHistoryPageListV1.
 const SSQ_NAMES={1:'一等奖',2:'二等奖',3:'三等奖',4:'四等奖',5:'五等奖',6:'六等奖',7:'福运奖'};
 const DLT_NAMES={1:'一等奖',2:'二等奖',3:'三等奖',4:'四等奖',5:'五等奖',6:'六等奖',7:'七等奖',8:'八等奖',9:'九等奖'};
 
+function ssqCondition(t){const m={1:'6红+1蓝',2:'6红+0蓝',3:'5红+1蓝',4:'5红+0蓝 / 4红+1蓝',5:'4红+0蓝 / 3红+1蓝',6:'中蓝球(0红+1蓝)',7:'3红+0蓝(福运奖)'};return m[t]||''}
+function dltCondition(name,code){
+  // DLT 中奖条件(13个条件始终不变，按奖级分组因时期而异)
+  const m={
+    '一等奖': '5+2','二等奖': '5+1',
+    '三等奖': code>='26014'?'5+0 / 4+2':code>='19019'?'5+0':'5+0',
+    '四等奖': code>='26014'?'4+1':code>='19019'?'4+2':'4+2 / 4+1 / 3+2',
+    '五等奖': code>='26014'?'4+0 / 3+2':code>='19019'?'4+1':code>='14052'?'4+0 / 3+1 / 2+2':'4+1 / 3+2 / 2+2 / 1+2',
+    '六等奖': code>='26014'?'3+1 / 2+2':code>='19019'?'3+2':code>='14052'?'3+0 / 2+1 / 1+2 / 0+2':'4+0 / 3+1 / 2+2',
+    '七等奖': code>='26014'?'3+0 / 2+1 / 1+2 / 0+2':code>='19019'?'4+0':code>='14052'?'':'3+0 / 2+1 / 1+2 / 0+2',
+    '八等奖': code>='14052'?'':'3+1 / 2+2',
+    '九等奖': code>='14052'?'':'3+0 / 2+1 / 1+2 / 0+2',
+  };
+  const base=name.replace('(追加)','');
+  return m[base]||'';
+}
+
 function formatMoney(v){if(!v)return'-';if(v>=1e8)return(v/1e8).toFixed(2)+'亿';if(v>=1e4)return(v/1e4).toFixed(0)+'万';return v.toLocaleString()}
 function parseMoneyInt(s){if(!s)return 0;if(s==='浮动')return 0;s=String(s).replace(/[,，]/g,'');const n=parseInt(s);return isNaN(n)?0:n}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
@@ -268,8 +285,8 @@ const DrawList={
         <span class="balls" v-else><span v-for="n in (d.front||'').split(',')" class="ball ball-red">{{n}}</span><span v-for="n in (d.back||'').split(',')" class="ball ball-blue">{{n}}</span></span>
       </td><td>{{formatMoney(d.sales)}}</td><td>{{formatMoney(d.pool_money)}}</td>
     </tr>
-    <tr v-if="expanded[d.code]" class="expand-row" @click.stop><td colspan="6"><div class="prize-mini-table"><table><thead><tr><th>奖项</th><th>中奖注数</th><th>单注奖金</th><th v-if="lottery==='dlt'">总奖金</th></tr></thead>
-    <tbody><tr v-for="p in (d.prize_grades_parsed||[]).filter(p=>(p.typenum||p.count)!==''||(p.typemoney||p.amount)!=='')" :key="p.type||p.level"><td class="highlight">{{lottery==='ssq'?ssqName(p.type):p.level}}</td><td>{{p.typenum||p.count||'-'}}</td><td>{{p.typemoney||p.amount||'-'}}</td><td v-if="lottery==='dlt'">{{p.total||'-'}}</td></tr></tbody></table></div></td></tr></template></tbody></table></div>
+    <tr v-if="expanded[d.code]" class="expand-row" @click.stop><td colspan="6"><div class="prize-mini-table"><table><thead><tr><th>奖项</th><th>条件</th><th>中奖注数</th><th>单注奖金</th><th v-if="lottery==='dlt'">总奖金</th></tr></thead>
+    <tbody><tr v-for="p in (d.prize_grades_parsed||[]).filter(p=>(p.typenum||p.count)!==''||(p.typemoney||p.amount)!=='')" :key="p.type||p.level"><td class="highlight">{{lottery==='ssq'?ssqName(p.type):p.level}}</td><td style="font-size:11px;color:#94a3b8">{{lottery==='ssq'?ssqCondition(p.type):dltCondition(p.level,d.code)}}</td><td>{{p.typenum||p.count||'-'}}</td><td>{{p.typemoney||p.amount||'-'}}</td><td v-if="lottery==='dlt'">{{p.total||'-'}}</td></tr></tbody></table></div></td></tr></template></tbody></table></div>
     <div class="pagination"><button :disabled="page<=1" @click="goto(page-1)">上一页</button>
       <div class="page-nums"><span v-for="p in pageNumbers" :key="p" :class="['page-num',{active:p===page}]" @click="typeof p==='number'&&goto(p)">{{p}}</span></div>
       <span>共{{total}}期</span><button :disabled="page>=totalPages" @click="goto(page+1)">下一页</button></div>
@@ -296,8 +313,8 @@ const DrawDetail={
       </div>
       <div class="stat-row"><div class="stat-item"><div class="label">销售额</div><div class="value">{{formatMoney(draw.sales)}}</div></div><div class="stat-item"><div class="label">奖池</div><div class="value">{{formatMoney(draw.pool_money)}}</div></div></div>
     </div></div>
-    <div class="card" v-if="prizes.length"><h2>奖项明细</h2><div class="table-wrap"><table><thead><tr><th>奖项</th><th>注数</th><th>单注金额</th><th v-if="lottery==='dlt'">总金额</th></tr></thead>
-    <tbody><tr v-for="p in prizes.filter(p=>(p.typenum||p.count)!==''||(p.typemoney||p.amount)!=='')" :key="p.type||p.level"><td class="highlight">{{p.type?ssqName(p.type):(p.level||'')}}</td><td>{{p.typenum||p.count||'-'}}</td><td>{{p.typemoney||p.amount||'-'}}</td><td v-if="lottery==='dlt'">{{p.total||'-'}}</td></tr></tbody></table></div></div>
+    <div class="card" v-if="prizes.length"><h2>奖项明细</h2><div class="table-wrap"><table><thead><tr><th>奖项</th><th>条件</th><th>注数</th><th>单注金额</th><th v-if="lottery==='dlt'">总金额</th></tr></thead>
+    <tbody><tr v-for="p in prizes.filter(p=>(p.typenum||p.count)!==''||(p.typemoney||p.amount)!=='')" :key="p.type||p.level"><td class="highlight">{{p.type?ssqName(p.type):(p.level||'')}}</td><td style="font-size:12px;color:#94a3b8">{{lottery==='ssq'?ssqCondition(p.type):dltCondition(p.level,draw.code)}}</td><td>{{p.typenum||p.count||'-'}}</td><td>{{p.typemoney||p.amount||'-'}}</td><td v-if="lottery==='dlt'">{{p.total||'-'}}</td></tr></tbody></table></div></div>
   </div></div>`
 };
 
