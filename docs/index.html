@@ -153,7 +153,7 @@ const {createRouter,createWebHashHistory}=VueRouter;
 const DATA_URL='./data/lottery_data.json';
 const SSQ_API='https://www.cwl.gov.cn/cwl_admin/front/cwlkj/search/kjxx/findDrawNotice';
 const DLT_API='https://webapi.sporttery.cn/gateway/lottery/getHistoryPageListV1.qry';
-const SSQ_NAMES={1:'一等奖',2:'二等奖',3:'三等奖',4:'四等奖',5:'五等奖',6:'六等奖'};
+const SSQ_NAMES={1:'一等奖',2:'二等奖',3:'三等奖',4:'四等奖',5:'五等奖',6:'六等奖',7:'福运奖'};
 const DLT_NAMES={1:'一等奖',2:'二等奖',3:'三等奖',4:'四等奖',5:'五等奖',6:'六等奖',7:'七等奖',8:'八等奖',9:'九等奖'};
 
 function formatMoney(v){if(!v)return'-';if(v>=1e8)return(v/1e8).toFixed(2)+'亿';if(v>=1e4)return(v/1e4).toFixed(0)+'万';return v.toLocaleString()}
@@ -161,6 +161,7 @@ function parseMoneyInt(s){if(!s)return 0;if(s==='浮动')return 0;s=String(s).re
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
 
 // --- Checking ---
+function isFuyunActive(draw){return Number(draw.code)>=2026014&&draw.pool_money>=300000000}
 function checkSSQ(ticket,draw){
   const tR=new Set(ticket.red.split(',')),tB=ticket.blue,dR=new Set(draw.red.split(',')),dB=draw.blue;
   let rm=0;tR.forEach(n=>{if(dR.has(n))rm++});const bm=tB===dB?1:0;
@@ -169,8 +170,9 @@ function checkSSQ(ticket,draw){
   else if((rm===5&&bm===0)||(rm===4&&bm===1))p=4;
   else if((rm===4&&bm===0)||(rm===3&&bm===1))p=5;
   else if(bm===1)p=6;
+  else if(rm===3&&bm===0&&isFuyunActive(draw))p=7;
   if(!p)return null;
-  let amt='浮动';
+  let amt=p===7?'5':'浮动';
   const grades=draw.prize_grades_parsed||[];
   for(const g of grades){
     if(Number(g.type)===p){const m=g.typemoney||g.amount||'';if(m&&m!=='0')amt=m;break}
@@ -267,7 +269,7 @@ const DrawList={
       </td><td>{{formatMoney(d.sales)}}</td><td>{{formatMoney(d.pool_money)}}</td>
     </tr>
     <tr v-if="expanded[d.code]" class="expand-row" @click.stop><td colspan="6"><div class="prize-mini-table"><table><thead><tr><th>奖项</th><th>中奖注数</th><th>单注奖金</th><th v-if="lottery==='dlt'">总奖金</th></tr></thead>
-    <tbody><tr v-for="p in (d.prize_grades_parsed||[])" :key="p.type||p.level"><td class="highlight">{{lottery==='ssq'?ssqName(p.type):p.level}}</td><td>{{p.typenum||p.count||'-'}}</td><td>{{p.typemoney||p.amount||'-'}}</td><td v-if="lottery==='dlt'">{{p.total||'-'}}</td></tr></tbody></table></div></td></tr></template></tbody></table></div>
+    <tbody><tr v-for="p in (d.prize_grades_parsed||[]).filter(p=>(p.typenum||p.count)!==''||(p.typemoney||p.amount)!=='')" :key="p.type||p.level"><td class="highlight">{{lottery==='ssq'?ssqName(p.type):p.level}}</td><td>{{p.typenum||p.count||'-'}}</td><td>{{p.typemoney||p.amount||'-'}}</td><td v-if="lottery==='dlt'">{{p.total||'-'}}</td></tr></tbody></table></div></td></tr></template></tbody></table></div>
     <div class="pagination"><button :disabled="page<=1" @click="goto(page-1)">上一页</button>
       <div class="page-nums"><span v-for="p in pageNumbers" :key="p" :class="['page-num',{active:p===page}]" @click="typeof p==='number'&&goto(p)">{{p}}</span></div>
       <span>共{{total}}期</span><button :disabled="page>=totalPages" @click="goto(page+1)">下一页</button></div>
@@ -295,7 +297,7 @@ const DrawDetail={
       <div class="stat-row"><div class="stat-item"><div class="label">销售额</div><div class="value">{{formatMoney(draw.sales)}}</div></div><div class="stat-item"><div class="label">奖池</div><div class="value">{{formatMoney(draw.pool_money)}}</div></div></div>
     </div></div>
     <div class="card" v-if="prizes.length"><h2>奖项明细</h2><div class="table-wrap"><table><thead><tr><th>奖项</th><th>注数</th><th>单注金额</th><th v-if="lottery==='dlt'">总金额</th></tr></thead>
-    <tbody><tr v-for="p in prizes" :key="p.type||p.level"><td class="highlight">{{p.type?ssqName(p.type):(p.level||'')}}</td><td>{{p.typenum||p.count||'-'}}</td><td>{{p.typemoney||p.amount||'-'}}</td><td v-if="lottery==='dlt'">{{p.total||'-'}}</td></tr></tbody></table></div></div>
+    <tbody><tr v-for="p in prizes.filter(p=>(p.typenum||p.count)!==''||(p.typemoney||p.amount)!=='')" :key="p.type||p.level"><td class="highlight">{{p.type?ssqName(p.type):(p.level||'')}}</td><td>{{p.typenum||p.count||'-'}}</td><td>{{p.typemoney||p.amount||'-'}}</td><td v-if="lottery==='dlt'">{{p.total||'-'}}</td></tr></tbody></table></div></div>
   </div></div>`
 };
 
@@ -501,7 +503,7 @@ const app=createApp({
           const existing=new Set((allData.value.ssq||[]).map(x=>x.code));
           const items=d.result.filter(x=>!existing.has(x.code));
           if(items.length){
-            const mapped=items.map(x=>{let pgParsed=[];try{pgParsed=JSON.parse(x.prizegrades||'[]')}catch(e){}return{code:x.code,draw_date:x.date,week_day:x.week||'',red:x.red,blue:x.blue,sales:+x.sales,pool_money:+x.poolbalance,content:x.content||'',prize_grades:x.prizegrades||'',prize_grades_parsed:pgParsed}});
+            const mapped=items.map(x=>{let pgParsed=[];try{pgParsed=JSON.parse(x.prizegrades||'[]')}catch(e){}return{code:x.code,draw_date:x.date,week_day:x.week||'',red:x.red,blue:x.blue,sales:+x.sales,pool_money:+x.poolbalance,content:x.content||'',prize_grades:x.prizegrades||'',prize_grades_parsed:isFuyunActive({code:x.code,pool_money:+x.poolbalance})?pgParsed.map(p=>p.type===7&&!p.typenum?{...p,typenum:'-',typemoney:'5'}:p):pgParsed}});
             allData.value={...allData.value,ssq:[...mapped,...allData.value.ssq]};newDraws+=items.length;
           }
         }
