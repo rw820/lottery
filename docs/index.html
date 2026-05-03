@@ -8,122 +8,128 @@
 <script src="https://unpkg.com/vue-router@4/dist/vue-router.global.prod.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#0f172a;color:#e2e8f0;min-height:100vh}
-a{color:#60a5fa;text-decoration:none}a:hover{text-decoration:underline}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#f2f4f6;color:#1e293b;min-height:100vh}
+a{color:#2563eb;text-decoration:none}a:hover{text-decoration:underline}
 
-.nav{background:#1e293b;border-bottom:1px solid #334155;padding:0 16px;display:flex;align-items:center;height:56px;position:sticky;top:0;z-index:100;gap:4px}
-.nav-brand{font-size:16px;font-weight:700;color:#f1f5f9;margin-right:16px;white-space:nowrap}
+.nav{background:#fff;border-bottom:1px solid #e5e7eb;padding:0 16px;display:flex;align-items:center;height:56px;position:sticky;top:0;z-index:100;gap:4px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.nav-brand{font-size:16px;font-weight:700;color:#1e293b;margin-right:16px;white-space:nowrap}
 .nav-links{display:flex;gap:2px;flex:1}
-.nav-links a{padding:6px 12px;border-radius:6px;color:#94a3b8;font-size:13px;transition:all .2s;white-space:nowrap}
-.nav-links a:hover{background:#334155;color:#f1f5f9;text-decoration:none}
-.nav-links a.active{background:#3b82f6;color:#fff}
-.refresh-btn{padding:6px 12px;border-radius:6px;border:1px solid #334155;background:#1e293b;color:#94a3b8;cursor:pointer;font-size:12px;white-space:nowrap}
-.refresh-btn:hover{border-color:#60a5fa;color:#e2e8f0}
-.refresh-btn.success{border-color:#22c55e;color:#22c55e}
+.nav-links a{padding:6px 12px;border-radius:6px;color:#64748b;font-size:13px;transition:all .2s;white-space:nowrap}
+.nav-links a:hover{background:#f3f4f6;color:#1e293b;text-decoration:none}
+.nav-links a.active{background:#2563eb;color:#fff}
+.refresh-btn{padding:6px 12px;border-radius:6px;border:1px solid #d1d5db;background:#fff;color:#64748b;cursor:pointer;font-size:12px;white-space:nowrap}
+.refresh-btn:hover{border-color:#2563eb;color:#1e293b}
+.refresh-btn.success{border-color:#16a34a;color:#16a34a}
 
 .container{max-width:1200px;margin:0 auto;padding:20px 16px}
 .tabs{display:flex;gap:4px;margin-bottom:16px}
-.tab{padding:8px 16px;border-radius:6px;cursor:pointer;font-size:14px;font-weight:500;color:#94a3b8;background:#1e293b;border:1px solid #334155;transition:all .2s}
-.tab:hover{border-color:#60a5fa;color:#e2e8f0}
-.tab.active{background:#3b82f6;color:#fff;border-color:#3b82f6}
+.tab{padding:8px 16px;border-radius:6px;cursor:pointer;font-size:14px;font-weight:500;color:#64748b;background:#f3f4f6;border:1px solid #d1d5db;transition:all .2s}
+.tab:hover{border-color:#2563eb;color:#1e293b}
+.tab.active{background:#2563eb;color:#fff;border-color:#2563eb}
 
-.table-wrap{overflow-x:auto;border-radius:8px;border:1px solid #334155}
-table{width:100%;border-collapse:collapse;font-size:13px}
-th{background:#1e293b;color:#94a3b8;font-weight:600;text-align:left;padding:10px 12px;border-bottom:1px solid #334155;white-space:nowrap}
-td{padding:10px 12px;border-bottom:1px solid #1e293b}
-tbody tr:hover td{background:#1e293b}
+.table-wrap{overflow-x:auto;border-radius:8px;border:1px solid #e5e7eb;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+table{width:100%;border-collapse:collapse;font-size:13px;background:#fff}
+th{background:#f9fafb;color:#64748b;font-weight:600;text-align:left;padding:10px 12px;border-bottom:1px solid #e5e7eb;white-space:nowrap}
+td{padding:10px 12px;border-bottom:1px solid #f3f4f6}
+tbody tr:hover td{background:#f8fafc}
 tbody tr{cursor:pointer}
 
 .balls{display:inline-flex;gap:4px;flex-wrap:wrap}
 .ball{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;font-size:11px;font-weight:700}
 .ball-red{background:#ef4444;color:#fff}
-.ball-blue{background:#3b82f6;color:#fff}
+.ball-blue{background:#2563eb;color:#fff}
 
 .pagination{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:16px;flex-wrap:wrap}
-.pagination button{padding:6px 12px;border-radius:6px;border:1px solid #334155;background:#1e293b;color:#e2e8f0;cursor:pointer;font-size:13px}
-.pagination button:hover:not(:disabled){border-color:#60a5fa}
+.pagination button{padding:6px 12px;border-radius:6px;border:1px solid #d1d5db;background:#fff;color:#1e293b;cursor:pointer;font-size:13px}
+.pagination button:hover:not(:disabled){border-color:#2563eb}
 .pagination button:disabled{opacity:.4;cursor:default}
 .page-nums{display:flex;gap:2px;flex-wrap:wrap}
-.page-num{padding:4px 8px;border-radius:4px;cursor:pointer;font-size:12px;color:#94a3b8;background:#1e293b;border:1px solid #334155}
-.page-num:hover{border-color:#60a5fa}
-.page-num.active{background:#3b82f6;color:#fff;border-color:#3b82f6}
+.page-num{padding:4px 8px;border-radius:4px;cursor:pointer;font-size:12px;color:#64748b;background:#fff;border:1px solid #d1d5db}
+.page-num:hover{border-color:#2563eb}
+.page-num.active{background:#2563eb;color:#fff;border-color:#2563eb}
 
-.card{background:#1e293b;border:1px solid #334155;border-radius:10px;padding:16px;margin-bottom:12px}
-.card h2{font-size:15px;margin-bottom:10px;color:#f1f5f9}
+.card{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:20px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.card h2{font-size:15px;margin-bottom:10px;color:#1e293b}
 
 .stat-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px}
-.stat-card{background:#0f172a;border:1px solid #334155;border-radius:8px;padding:12px;text-align:center}
-.stat-card .label{color:#64748b;font-size:11px;margin-bottom:4px}
-.stat-card .value{color:#f1f5f9;font-size:18px;font-weight:700}
-.stat-card .value.gold{color:#fbbf24}
-.stat-card .sub{color:#64748b;font-size:10px;margin-top:2px}
+.stat-card{background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:12px;text-align:center;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.stat-card .label{color:#94a3b8;font-size:11px;margin-bottom:4px}
+.stat-card .value{color:#1e293b;font-size:18px;font-weight:700}
+.stat-card .value.gold{color:#d97706}
+.stat-card .sub{color:#94a3b8;font-size:10px;margin-top:2px}
 
 .draw-header{text-align:center;padding:20px 0}
-.draw-header h1{font-size:20px;color:#f1f5f9;margin-bottom:6px}
-.draw-header .date{color:#94a3b8;font-size:13px}
+.draw-header h1{font-size:20px;color:#1e293b;margin-bottom:6px}
+.draw-header .date{color:#64748b;font-size:13px}
 .draw-balls{display:flex;justify-content:center;gap:6px;margin:16px 0;flex-wrap:wrap}
 .draw-balls .ball{width:40px;height:40px;font-size:15px}
-.draw-balls .sep{display:flex;align-items:center;color:#475569;font-size:18px;font-weight:300}
+.draw-balls .sep{display:flex;align-items:center;color:#b0b7c3;font-size:18px;font-weight:300}
 .stat-row{display:flex;justify-content:center;gap:24px;margin:12px 0;flex-wrap:wrap}
 .stat-item{text-align:center}
-.stat-item .label{color:#94a3b8;font-size:11px;margin-bottom:2px}
-.stat-item .value{color:#f1f5f9;font-size:15px;font-weight:600}
-.highlight{color:#fbbf24;font-weight:600}
+.stat-item .label{color:#64748b;font-size:11px;margin-bottom:2px}
+.stat-item .value{color:#1e293b;font-size:15px;font-weight:600}
+.highlight{color:#d97706;font-weight:600}
 
 .check-section{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 @media(max-width:768px){.check-section{grid-template-columns:1fr}}
-textarea{width:100%;background:#0f172a;border:1px solid #334155;border-radius:8px;color:#e2e8f0;padding:10px;font-size:13px;font-family:monospace;resize:vertical;min-height:160px}
-textarea:focus{outline:none;border-color:#3b82f6}
-select,input[type="text"]{background:#0f172a;border:1px solid #334155;border-radius:6px;color:#e2e8f0;padding:6px 10px;font-size:13px}
-select:focus,input:focus{outline:none;border-color:#3b82f6}
+textarea{width:100%;background:#fff;border:1px solid #d1d5db;border-radius:8px;color:#1e293b;padding:10px;font-size:13px;font-family:monospace;resize:vertical;min-height:160px}
+textarea:focus{outline:none;border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+select,input[type="text"]{background:#fff;border:1px solid #d1d5db;border-radius:6px;color:#1e293b;padding:6px 10px;font-size:13px}
+select:focus,input:focus{outline:none;border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.1)}
 
 .btn{padding:6px 16px;border-radius:6px;border:none;cursor:pointer;font-size:13px;font-weight:500;transition:all .2s}
-.btn-primary{background:#3b82f6;color:#fff}
-.btn-primary:hover{background:#2563eb}
+.btn-primary{background:#2563eb;color:#fff}
+.btn-primary:hover{background:#1d4ed8}
 .btn-sm{padding:4px 10px;font-size:12px}
 .btn-danger{background:#dc2626;color:#fff}
 .btn-danger:hover{background:#b91c1c}
-.btn-secondary{background:#334155;color:#e2e8f0}
-.btn-secondary:hover{background:#475569}
+.btn-secondary{background:#f3f4f6;color:#374151;border:1px solid #d1d5db}
+.btn-secondary:hover{background:#e5e7eb}
 
-.upload-zone{border:2px dashed #334155;border-radius:8px;padding:30px;text-align:center;color:#94a3b8;cursor:pointer;transition:all .2s}
-.upload-zone:hover{border-color:#3b82f6;color:#e2e8f0}
+.upload-zone{border:2px dashed #d1d5db;border-radius:8px;padding:30px;text-align:center;color:#64748b;cursor:pointer;transition:all .2s}
+.upload-zone:hover{border-color:#2563eb;color:#1e293b;background:#f8fafc}
 
-.win{color:#fbbf24;font-weight:600}
-.lose{color:#64748b}
+.win{color:#d97706;font-weight:600}
+.lose{color:#94a3b8}
 
 .form-row{display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap}
-.form-row label{color:#94a3b8;font-size:12px;white-space:nowrap}
-.hint{color:#64748b;font-size:11px;margin-top:4px}
+.form-row label{color:#64748b;font-size:12px;white-space:nowrap}
+.hint{color:#94a3b8;font-size:11px;margin-top:4px}
 .summary{display:flex;gap:12px;margin:10px 0;flex-wrap:wrap}
-.summary .tag{padding:3px 10px;border-radius:4px;font-size:12px;background:#334155}
+.summary .tag{padding:3px 10px;border-radius:4px;font-size:12px;background:#f3f4f6;color:#374151}
 .back-link{margin-bottom:12px}
 .loading-box{text-align:center;padding:30px;color:#94a3b8}
-.ticket-item{background:#0f172a;border:1px solid #334155;border-radius:8px;padding:12px;margin-bottom:8px}
-.ticket-item:hover{border-color:#475569}
+.ticket-item{background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:12px;margin-bottom:8px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.ticket-item:hover{border-color:#d1d5db}
 .ticket-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
-.ticket-label{font-weight:600;color:#f1f5f9;font-size:13px}
-.ticket-meta{color:#64748b;font-size:11px}
+.ticket-label{font-weight:600;color:#1e293b;font-size:13px}
+.ticket-meta{color:#94a3b8;font-size:11px}
+.ticket-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-top:10px}
+.ticket-stat{background:#f8fafc;border-radius:6px;padding:8px 10px;text-align:center}
+.ticket-stat-label{color:#94a3b8;font-size:10px;margin-bottom:2px}
+.ticket-stat-value{color:#1e293b;font-size:14px;font-weight:600}
+.ticket-stat-value.gold{color:#d97706}
+.ticket-stat-sub{color:#94a3b8;font-size:10px;margin-top:1px}
 .win-history{margin-top:8px}
 .win-row{display:flex;justify-content:space-between;align-items:center;padding:6px 8px;border-radius:4px;font-size:12px}
-.win-row:nth-child(odd){background:rgba(59,130,246,.05)}
-.win-row .code{color:#60a5fa}
-.win-row .prize{color:#fbbf24}
-.win-row .date{color:#64748b}
-.empty-state{text-align:center;padding:40px;color:#475569}
-.expand-btn{background:#1e3a5f;border:1px solid #3b82f6;color:#bfdbfe;cursor:pointer;font-size:11px;padding:2px 8px;border-radius:4px;line-height:1;transition:all .2s;white-space:nowrap}
+.win-row:nth-child(odd){background:#f8fafc}
+.win-row .code{color:#2563eb}
+.win-row .prize{color:#d97706}
+.win-row .date{color:#94a3b8}
+.empty-state{text-align:center;padding:40px;color:#9ca3af}
+.expand-btn{background:#eff6ff;border:1px solid #93c5fd;color:#2563eb;cursor:pointer;font-size:11px;padding:2px 8px;border-radius:4px;line-height:1;transition:all .2s;white-space:nowrap}
 .expand-btn:hover{background:#2563eb;color:#fff}
-.expand-btn.is-open{background:#854d0e;border-color:#fbbf24;color:#fde68a}
-.expand-btn.is-open:hover{background:#a16207;color:#fff}
-.expand-row td{background:#0f172a;padding:0!important}
+.expand-btn.is-open{background:#fffbeb;border-color:#fcd34d;color:#d97706}
+.expand-btn.is-open:hover{background:#f59e0b;color:#fff}
+.expand-row td{background:#f9fafb;padding:0!important}
 .prize-mini-table{padding:8px 16px 12px}
 .prize-mini-table table{width:100%;font-size:12px}
-.prize-mini-table th{background:#1e293b;color:#94a3b8;font-weight:500;text-align:left;padding:6px 10px}
-.prize-mini-table td{padding:5px 10px;border-bottom:1px solid #1e293b}
-.refresh-toast{position:fixed;top:64px;right:16px;padding:10px 16px;border-radius:8px;font-size:13px;z-index:200;max-width:300px;animation:slideIn .3s}
-.refresh-toast.success{background:#166534;color:#bbf7d0;border:1px solid #22c55e}
-.refresh-toast.error{background:#7f1d1d;color:#fecaca;border:1px solid #ef4444}
-.refresh-toast.info{background:#1e3a5f;color:#bfdbfe;border:1px solid #3b82f6}
+.prize-mini-table th{background:#f3f4f6;color:#64748b;font-weight:500;text-align:left;padding:6px 10px}
+.prize-mini-table td{padding:5px 10px;border-bottom:1px solid #f3f4f6}
+.refresh-toast{position:fixed;top:64px;right:16px;padding:10px 16px;border-radius:8px;font-size:13px;z-index:200;max-width:300px;animation:slideIn .3s;box-shadow:0 4px 12px rgba(0,0,0,.1)}
+.refresh-toast.success{background:#ecfdf5;color:#065f46;border:1px solid #86efac}
+.refresh-toast.error{background:#fef2f2;color:#991b1b;border:1px solid #fca5a5}
+.refresh-toast.info{background:#eff6ff;color:#1e40af;border:1px solid #93c5fd}
 @keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
 </style>
 </head>
@@ -133,7 +139,6 @@ select:focus,input:focus{outline:none;border-color:#3b82f6}
   <div class="nav-brand">彩票查询</div>
   <div class="nav-links">
     <router-link to="/" :class="{active:$route.path==='/'}">开奖记录</router-link>
-    <router-link to="/check" :class="{active:$route.path==='/check'}">兑奖</router-link>
     <router-link to="/my" :class="{active:$route.path==='/my'}">我的号码</router-link>
   </div>
   <button class="refresh-btn" :class="{success:refreshOk}" @click="refreshData" :disabled="refreshing">
@@ -307,7 +312,7 @@ const DrawList={
       </td><td>{{formatMoney(d.sales)}}</td><td>{{formatMoney(d.pool_money)}}</td>
     </tr>
     <tr v-if="expanded[d.code]" class="expand-row" @click.stop><td colspan="6"><div class="prize-mini-table"><table><thead><tr><th>奖项</th><th>条件</th><th>中奖注数</th><th>单注奖金</th><th v-if="lottery==='dlt'">总奖金</th></tr></thead>
-    <tbody><tr v-for="p in sortDLTPrizes(d.prize_grades_parsed||[]).filter(p=>(p.typenum||p.count)!==''||(p.typemoney||p.amount)!=='')" :key="p.type||p.level"><td class="highlight">{{lottery==='ssq'?ssqName(p.type):p.level}}</td><td style="font-size:11px;color:#94a3b8">{{lottery==='ssq'?ssqCondition(p.type):dltCondition(p.level,d.code)}}</td><td>{{p.typenum||p.count||'-'}}<span v-if="p._estimated" style="color:#f59e0b;font-size:11px" title="由七等奖推算">(推算)</span></td><td>{{p.typemoney||p.amount||'-'}}</td><td v-if="lottery==='dlt'">{{p.total||'-'}}<span v-if="p._estimated" style="color:#f59e0b;font-size:11px">(推算)</span></td></tr></tbody></table></div></td></tr></template></tbody></table></div>
+    <tbody><tr v-for="p in sortDLTPrizes(d.prize_grades_parsed||[]).filter(p=>(p.typenum||p.count)!==''||(p.typemoney||p.amount)!=='')" :key="p.type||p.level"><td class="highlight">{{lottery==='ssq'?ssqName(p.type):p.level}}</td><td style="font-size:11px;color:#64748b">{{lottery==='ssq'?ssqCondition(p.type):dltCondition(p.level,d.code)}}</td><td>{{p.typenum||p.count||'-'}}<span v-if="p._estimated" style="color:#d97706;font-size:11px" title="由七等奖推算">(推算)</span></td><td>{{p.typemoney||p.amount||'-'}}</td><td v-if="lottery==='dlt'">{{p.total||'-'}}<span v-if="p._estimated" style="color:#d97706;font-size:11px">(推算)</span></td></tr></tbody></table></div></td></tr></template></tbody></table></div>
     <div class="pagination"><button :disabled="page<=1" @click="goto(page-1)">上一页</button>
       <div class="page-nums"><span v-for="p in pageNumbers" :key="p" :class="['page-num',{active:p===page}]" @click="typeof p==='number'&&goto(p)">{{p}}</span></div>
       <span>共{{total}}期</span><button :disabled="page>=totalPages" @click="goto(page+1)">下一页</button></div>
@@ -335,52 +340,7 @@ const DrawDetail={
       <div class="stat-row"><div class="stat-item"><div class="label">销售额</div><div class="value">{{formatMoney(draw.sales)}}</div></div><div class="stat-item"><div class="label">奖池</div><div class="value">{{formatMoney(draw.pool_money)}}</div></div></div>
     </div></div>
     <div class="card" v-if="prizes.length"><h2>奖项明细</h2><div class="table-wrap"><table><thead><tr><th>奖项</th><th>条件</th><th>注数</th><th>单注金额</th><th v-if="lottery==='dlt'">总金额</th></tr></thead>
-    <tbody><tr v-for="p in sortDLTPrizes(prizes).filter(p=>(p.typenum||p.count)!==''||(p.typemoney||p.amount)!=='')" :key="p.type||p.level"><td class="highlight">{{p.type?ssqName(p.type):(p.level||'')}}</td><td style="font-size:12px;color:#94a3b8">{{lottery==='ssq'?ssqCondition(p.type):dltCondition(p.level,draw.code)}}</td><td>{{p.typenum||p.count||'-'}}<span v-if="p._estimated" style="color:#f59e0b;font-size:11px" title="由七等奖推算">(推算)</span></td><td>{{p.typemoney||p.amount||'-'}}</td><td v-if="lottery==='dlt'">{{p.total||'-'}}<span v-if="p._estimated" style="color:#f59e0b;font-size:11px">(推算)</span></td></tr></tbody></table></div></div>
-  </div></div>`
-};
-
-const CheckPage={
-  setup(){
-    const lottery=ref('ssq'),code=ref(''),codes=ref([]),inputText=ref(''),results=ref(null),loading=ref(true),checking=ref(false),error=ref(''),dragover=ref(false);
-    async function loadCodes(){loading.value=true;try{const d=await loadData();codes.value=(d[lottery.value]||[]).map(d=>d.code);if(codes.value.length&&!code.value)code.value=codes.value[0]}finally{loading.value=false}}
-    function switchLottery(lt){lottery.value=lt;code.value='';results.value=null;loadCodes()}
-    function doCheck(){
-      if(!code.value){error.value='请选择期号';return}error.value='';checking.value=true;
-      const lines=inputText.value.trim().split('\n').filter(l=>l.trim());const tickets=[];
-      for(const l of lines){const p=parseLine(l.trim(),lottery.value);if(p)tickets.push(p)}
-      if(!tickets.length){error.value='请输入有效号码';checking.value=false;return}
-      const items=(allData.value||{})[lottery.value]||[];const draw=items.find(d=>d.code===code.value);
-      if(!draw){error.value='未找到该期';checking.value=false;return}
-      results.value={draw:{code:draw.code,draw_date:draw.draw_date,...(lottery.value==='ssq'?{red:draw.red,blue:draw.blue}:{front:draw.front,back:draw.back})},
-        results:tickets.map(t=>{const r=checkTicket(lottery.value,t,draw);return r?{ticket:t,...r}:{ticket:t,prize:null,name:'未中奖',amount:'0'}})};
-      checking.value=false;
-    }
-    async function handleUpload(e){const f=e.target.files[0]||(e.dataTransfer&&e.dataTransfer.files[0]);if(!f)return;dragover.value=false;inputText.value=await f.text()}
-    onMounted(loadCodes);
-    return{lottery,code,codes,inputText,results,loading,checking,error,dragover,switchLottery,doCheck,handleUpload};
-  },
-  template:`<div><h2 style="margin-bottom:16px;color:#f1f5f9">兑奖查询</h2>
-  <div class="tabs" style="margin-bottom:12px"><div class="tab" :class="{active:lottery==='ssq'}" @click="switchLottery('ssq')">双色球</div><div class="tab" :class="{active:lottery==='dlt'}" @click="switchLottery('dlt')">大乐透</div></div>
-  <div class="form-row"><label>期号:</label><select v-model="code" style="min-width:140px"><option v-for="c in codes" :key="c" :value="c">{{c}}</option></select><span v-if="loading" style="color:#94a3b8;font-size:12px">加载中...</span></div>
-  <div class="check-section">
-    <div class="card"><h2>输入号码</h2><p class="hint" style="margin-bottom:6px">{{lottery==='ssq'?'格式: 01 04 19 22 24 25 + 15':'格式: 01 05 12 20 25 + 03 08'}}，每行一组</p>
-      <textarea v-model="inputText" :placeholder="lottery==='ssq'?'01 04 19 22 24 25 + 15':'01 05 12 20 25 + 03 08'"></textarea>
-      <div style="margin-top:8px;display:flex;gap:8px"><button class="btn btn-primary" @click="doCheck" :disabled="checking">{{checking?'查询中...':'开始兑奖'}}</button>
-      <button class="btn btn-secondary" @click="results=null;inputText=''" v-if="results">清除</button></div></div>
-    <div class="card"><h2>文件导入</h2><p class="hint" style="margin-bottom:8px">.txt/.csv，每行一组</p>
-      <div class="upload-zone" :class="{dragover}" @dragover.prevent="dragover=true" @dragleave="dragover=false" @drop.prevent="handleUpload($event)" @click="$refs.fileInput.click()">拖拽或点击选择文件</div>
-      <input type="file" ref="fileInput" style="display:none" accept=".txt,.csv" @change="handleUpload($event)"></div>
-  </div>
-  <div v-if="error" style="color:#f87171;margin-top:8px;font-size:13px">{{error}}</div>
-  <div v-if="results" class="card" style="margin-top:12px"><h2>兑奖结果</h2>
-    <div style="margin-bottom:8px;color:#94a3b8;font-size:12px">开奖号码:
-      <template v-if="lottery==='ssq'"><span class="balls"><span v-for="n in (results.draw.red||'').split(',')" class="ball ball-red" style="width:22px;height:22px;font-size:10px">{{n}}</span><span class="ball ball-blue" style="width:22px;height:22px;font-size:10px">{{results.draw.blue}}</span></span></template>
-      <template v-else><span class="balls"><span v-for="n in (results.draw.front||'').split(',')" class="ball ball-red" style="width:22px;height:22px;font-size:10px">{{n}}</span><span v-for="n in (results.draw.back||'').split(',')" class="ball ball-blue" style="width:22px;height:22px;font-size:10px">{{n}}</span></span></template>
-    </div>
-    <div class="summary"><span class="tag">共{{results.results.length}}注</span><span class="tag" style="background:#854d0e;color:#fbbf24">中奖{{results.results.filter(r=>r.prize).length}}注</span></div>
-    <div class="table-wrap"><table><thead><tr><th>#</th><th>号码</th><th>结果</th><th>金额</th></tr></thead>
-    <tbody><tr v-for="(r,i) in results.results" :key="i"><td>{{i+1}}</td><td><template v-if="lottery==='ssq'">{{r.ticket.red}} + {{r.ticket.blue}}</template><template v-else>{{r.ticket.front}} + {{r.ticket.back}}</template></td>
-    <td :class="r.prize?'win':'lose'">{{r.name}}</td><td :class="r.prize?'win':'lose'">{{r.amount}}{{r.prize?'元':''}}</td></tr></tbody></table></div>
+    <tbody><tr v-for="p in sortDLTPrizes(prizes).filter(p=>(p.typenum||p.count)!==''||(p.typemoney||p.amount)!=='')" :key="p.type||p.level"><td class="highlight">{{p.type?ssqName(p.type):(p.level||'')}}</td><td style="font-size:12px;color:#64748b">{{lottery==='ssq'?ssqCondition(p.type):dltCondition(p.level,draw.code)}}</td><td>{{p.typenum||p.count||'-'}}<span v-if="p._estimated" style="color:#d97706;font-size:11px" title="由七等奖推算">(推算)</span></td><td>{{p.typemoney||p.amount||'-'}}</td><td v-if="lottery==='dlt'">{{p.total||'-'}}<span v-if="p._estimated" style="color:#d97706;font-size:11px">(推算)</span></td></tr></tbody></table></div></div>
   </div></div>`
 };
 
@@ -456,7 +416,7 @@ const MyTickets={
            addTickets,removeTicket,clearAll,toggleExpand,fmtNums,formatMoney,parseMoneyInt};
   },
   template:`<div>
-  <h2 style="margin-bottom:12px;color:#f1f5f9">我的号码</h2>
+  <h2 style="margin-bottom:12px;color:#1e293b">我的号码</h2>
 
   <!-- Global stats -->
   <div class="stat-cards" v-if="tickets.length&&dataLoaded">
@@ -491,17 +451,19 @@ const MyTickets={
           </span>
         </div>
         <div style="display:flex;gap:6px;align-items:center">
-          <span class="win" v-if="ts.totalWins">{{ts.totalWins}}次中奖</span>
-          <span style="color:#64748b;font-size:11px" v-else>未中奖</span>
           <button class="btn btn-secondary btn-sm" @click="toggleExpand(ts.id)">{{expanded[ts.id]?'收起':'详情'}}</button>
           <button class="btn btn-danger btn-sm" @click="removeTicket(ts.id)">删除</button>
         </div>
       </div>
-      <div class="ticket-meta" v-if="ts.totalWins">
-        累计 {{formatMoney(ts.totalAmount)}} | 最新: {{ts.latest?.name}} {{ts.latest?.date}} | 最大: {{ts.maxWin?.name}} {{ts.maxWin?.amount}}元 ({{ts.maxWin?.date}})
+      <div v-if="ts.totalWins" class="ticket-stats">
+        <div class="ticket-stat"><div class="ticket-stat-label">累计中奖</div><div class="ticket-stat-value">{{ts.totalWins}}次</div></div>
+        <div class="ticket-stat"><div class="ticket-stat-label">累计金额</div><div class="ticket-stat-value gold">{{formatMoney(ts.totalAmount)}}</div></div>
+        <div class="ticket-stat"><div class="ticket-stat-label">最近中奖</div><div class="ticket-stat-value">{{ts.latest?.name}} {{ts.latest?.amount}}元</div><div class="ticket-stat-sub">{{ts.latest?.date}}</div></div>
+        <div class="ticket-stat"><div class="ticket-stat-label">最大中奖</div><div class="ticket-stat-value gold">{{ts.maxWin?.name}} {{ts.maxWin?.amount}}元</div><div class="ticket-stat-sub">{{ts.maxWin?.date}}</div></div>
       </div>
+      <div v-else class="ticket-meta">暂未中奖</div>
       <div class="win-history" v-if="expanded[ts.id]&&ts.wins.length">
-        <div class="win-row" style="background:#1e293b;color:#94a3b8;font-weight:600"><span>期号</span><span>日期</span><span>奖项</span><span>金额</span></div>
+        <div class="win-row" style="background:#f3f4f6;color:#64748b;font-weight:600"><span>期号</span><span>日期</span><span>奖项</span><span>金额</span></div>
         <div class="win-row" v-for="w in ts.wins" :key="w.code">
           <router-link :to="'/draw/'+ts.lottery+'/'+w.code" class="code">{{w.code}}</router-link>
           <span class="date">{{w.date}}</span>
@@ -615,9 +577,9 @@ const app=createApp({
 
 const router=createRouter({history:createWebHashHistory(),routes:[
   {path:'/',component:DrawList},{path:'/draw/:lottery/:code',component:DrawDetail},
-  {path:'/check',component:CheckPage},{path:'/my',component:MyTickets}
+  {path:'/my',component:MyTickets}
 ]});
-app.config.errorHandler=(err,instance,info)=>{console.error('Vue error:',err,info);document.getElementById('app').innerHTML='<div style="padding:40px;text-align:center;color:#f87171"><h2>页面出错了</h2><p style="color:#94a3b8;font-size:13px;margin-top:8px">请刷新页面重试</p><pre style="text-align:left;margin-top:16px;font-size:11px;color:#64748b;background:#1e293b;padding:12px;border-radius:8px;overflow:auto">'+err.message+'</pre></div>'};app.use(router);app.mount('#app');
+app.config.errorHandler=(err,instance,info)=>{console.error('Vue error:',err,info);document.getElementById('app').innerHTML='<div style="padding:40px;text-align:center;color:#dc2626"><h2>页面出错了</h2><p style="color:#64748b;font-size:13px;margin-top:8px">请刷新页面重试</p><pre style="text-align:left;margin-top:16px;font-size:11px;color:#374151;background:#f3f4f6;padding:12px;border-radius:8px;overflow:auto">'+err.message+'</pre></div>'};app.use(router);app.mount('#app');
 </script>
 </body>
 </html>
