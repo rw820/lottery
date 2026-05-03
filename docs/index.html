@@ -131,6 +131,14 @@ select:focus,input:focus{outline:none;border-color:#2563eb;box-shadow:0 0 0 3px 
 .refresh-toast.error{background:#fef2f2;color:#991b1b;border:1px solid #fca5a5}
 .refresh-toast.info{background:#eff6ff;color:#1e40af;border:1px solid #93c5fd}
 @keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;z-index:200;animation:fadeIn .2s}
+.modal{background:#fff;border-radius:12px;padding:24px;max-width:480px;width:90%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.15)}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.modal-header h3{font-size:16px;color:#1e293b;margin:0}
+.modal-close{background:none;border:none;font-size:22px;color:#94a3b8;cursor:pointer;padding:0 4px;line-height:1}
+.modal-close:hover{color:#1e293b}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
 </style>
 </head>
 <body>
@@ -352,7 +360,7 @@ const MyTickets={
     const inputText=ref('');
     const label=ref('');
     const loading=ref(false);
-    const expanded=ref({});
+    const expanded=ref({});const showAddModal=ref(false);
     const dataLoaded=ref(false);
 
     // Add tickets from input
@@ -413,32 +421,42 @@ const MyTickets={
     onMounted(async()=>{await loadData();dataLoaded.value=true});
 
     return{tickets,lottery,inputText,label,loading,expanded,dataLoaded,ticketStats,globalStats,
-           addTickets,removeTicket,clearAll,toggleExpand,fmtNums,formatMoney,parseMoneyInt};
+           addTickets,removeTicket,clearAll,toggleExpand,fmtNums,formatMoney,parseMoneyInt,showAddModal};
   },
   template:`<div>
-  <h2 style="margin-bottom:12px;color:#1e293b">我的号码</h2>
-
-  <!-- Global stats -->
-  <div class="stat-cards" v-if="tickets.length&&dataLoaded">
-    <div class="stat-card"><div class="label">保存号码</div><div class="value">{{globalStats.totalTickets}}注</div></div>
-    <div class="stat-card"><div class="label">累计中奖</div><div class="value gold">{{globalStats.totalWins}}次</div></div>
-    <div class="stat-card"><div class="label">累计金额</div><div class="value gold">{{formatMoney(globalStats.totalAmount)}}</div></div>
-    <div class="stat-card"><div class="label">最新中奖</div><div class="value" v-if="globalStats.latestWin">{{globalStats.latestWin.name}}<div class="sub">{{globalStats.latestWin.date}}</div></div><div class="value" v-else>-</div></div>
-    <div class="stat-card"><div class="label">最大中奖</div><div class="value gold" v-if="globalStats.maxWin">{{globalStats.maxWin.name}} {{globalStats.maxWin.amount}}元<div class="sub">{{globalStats.maxWin.date}}</div></div><div class="value" v-else>-</div></div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+  <h2 style="color:#1e293b;margin:0">我的号码</h2>
+  <div style="display:flex;gap:6px">
+    <button class="btn btn-danger btn-sm" @click="clearAll" v-if="tickets.length">清空全部</button>
+    <button class="btn btn-primary" @click="showAddModal=true">+ 添加号码</button>
   </div>
+</div>
 
-  <!-- Add ticket form -->
-  <div class="card">
-    <h2>添加号码</h2>
+<!-- Global stats -->
+<div class="stat-cards" v-if="tickets.length&&dataLoaded">
+  <div class="stat-card"><div class="label">保存号码</div><div class="value">{{globalStats.totalTickets}}注</div></div>
+  <div class="stat-card"><div class="label">累计中奖</div><div class="value gold">{{globalStats.totalWins}}次</div></div>
+  <div class="stat-card"><div class="label">累计金额</div><div class="value gold">{{formatMoney(globalStats.totalAmount)}}</div></div>
+  <div class="stat-card"><div class="label">最新中奖</div><div class="value" v-if="globalStats.latestWin">{{globalStats.latestWin.name}}<div class="sub">{{globalStats.latestWin.date}}</div></div><div class="value" v-else>-</div></div>
+  <div class="stat-card"><div class="label">最大中奖</div><div class="value gold" v-if="globalStats.maxWin">{{globalStats.maxWin.name}} {{globalStats.maxWin.amount}}元<div class="sub">{{globalStats.maxWin.date}}</div></div><div class="value" v-else>-</div></div>
+</div>
+
+<!-- Add modal -->
+<div v-if="showAddModal" class="modal-overlay" @click.self="showAddModal=false">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>添加号码</h3>
+      <button class="modal-close" @click="showAddModal=false">&times;</button>
+    </div>
     <div class="form-row"><label>彩种:</label><div class="tabs" style="margin:0"><div class="tab" :class="{active:lottery==='ssq'}" @click="lottery='ssq'">双色球</div><div class="tab" :class="{active:lottery==='dlt'}" @click="lottery='dlt'">大乐透</div></div></div>
     <div class="form-row"><label>备注:</label><input type="text" v-model="label" placeholder="可选，如 第1注" style="flex:1"></div>
     <p class="hint" style="margin-bottom:4px">{{lottery==='ssq'?'格式: 01 04 19 22 24 25 + 15':'格式: 01 05 12 20 25 + 03 08'}}，每行一组</p>
     <textarea v-model="inputText" :placeholder="lottery==='ssq'?'01 04 19 22 24 25 + 15':'01 05 12 20 25 + 03 08'" style="min-height:80px"></textarea>
-    <div style="margin-top:8px;display:flex;gap:8px"><button class="btn btn-primary" @click="addTickets">添加</button>
-      <button class="btn btn-danger btn-sm" @click="clearAll" v-if="tickets.length">清空全部</button></div>
+    <div style="margin-top:12px"><button class="btn btn-primary" @click="addTickets();showAddModal=false">确认添加</button></div>
   </div>
+</div>
 
-  <!-- Ticket list -->
+<!-- Ticket list -->
   <div v-if="!dataLoaded" class="loading-box">加载数据中...</div>
   <div v-else-if="!tickets.length" class="empty-state">还没有保存号码，请先添加</div>
   <div v-else>
