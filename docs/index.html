@@ -149,7 +149,7 @@ select:focus,input:focus{outline:none;border-color:#2563eb;box-shadow:0 0 0 3px 
     <router-link to="/" :class="{active:$route.path==='/'}">开奖记录</router-link>
     <router-link to="/my" :class="{active:$route.path==='/my'}">我的号码</router-link>
   </div>
-  <button class="refresh-btn" :class="{success:refreshOk}" @click="refreshData" :disabled="refreshing">
+  <button class="refresh-btn" :class="{success:refreshOk}" @click="刷新数据" :disabled="refreshing">
     {{refreshing?'刷新中...':'刷新数据'}}
   </button>
 </nav>
@@ -169,8 +169,8 @@ const DLT_API='https://webapi.sporttery.cn/gateway/lottery/getHistoryPageListV1.
 const SSQ_NAMES={1:'一等奖',2:'二等奖',3:'三等奖',4:'四等奖',5:'五等奖',6:'六等奖',7:'福运奖'};
 const DLT_NAMES={1:'一等奖',2:'二等奖',3:'三等奖',4:'四等奖',5:'五等奖',6:'六等奖',7:'七等奖',8:'八等奖',9:'九等奖'};
 
-function ssqCondition(t){const m={1:'6红+1蓝',2:'6红+0蓝',3:'5红+1蓝',4:'5红+0蓝 / 4红+1蓝',5:'4红+0蓝 / 3红+1蓝',6:'中蓝球(0红+1蓝)',7:'3红+0蓝(福运奖)'};return m[t]||''}
-function dltCondition(name,code){
+function 双色球条件(t){const m={1:'6红+1蓝',2:'6红+0蓝',3:'5红+1蓝',4:'5红+0蓝 / 4红+1蓝',5:'4红+0蓝 / 3红+1蓝',6:'中蓝球(0红+1蓝)',7:'3红+0蓝(福运奖)'};return m[t]||''}
+function 大乐透条件(name,code){
   // DLT 中奖条件(13个条件始终不变，按奖级分组因时期而异)
   const m={
     '一等奖': '5+2','二等奖': '5+1',
@@ -186,13 +186,13 @@ function dltCondition(name,code){
   return m[base]||'';
 }
 
-function sortDLTPrizes(prizes){if(!prizes||!prizes.length||!prizes[0].level)return prizes||[];const o={'一等奖':1,'二等奖':2,'三等奖':3,'四等奖':4,'五等奖':5,'六等奖':6,'七等奖':7,'八等奖':8,'九等奖':9};return[...prizes].sort((a,b)=>{const la=o[(a.level||'').replace('(追加)','')]||99;const lb=o[(b.level||'').replace('(追加)','')]||99;if(la!==lb)return la-lb;return(a.level||'').includes('追加')?1:(b.level||'').includes('追加')?-1:0})};function formatMoney(v){if(!v)return'-';if(v>=1e8)return(v/1e8).toFixed(2)+'亿';if(v>=1e4)return(v/1e4).toFixed(0)+'万';return v.toLocaleString()}
-function parseMoneyInt(s){if(!s)return 0;if(s==='浮动')return 0;s=String(s).replace(/[,，]/g,'');const n=parseInt(s);return isNaN(n)?0:n}
-function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+function 排序奖项(prizes){if(!prizes||!prizes.length||!prizes[0].level)return prizes||[];const o={'一等奖':1,'二等奖':2,'三等奖':3,'四等奖':4,'五等奖':5,'六等奖':6,'七等奖':7,'八等奖':8,'九等奖':9};return[...prizes].sort((a,b)=>{const la=o[(a.level||'').replace('(追加)','')]||99;const lb=o[(b.level||'').replace('(追加)','')]||99;if(la!==lb)return la-lb;return(a.level||'').includes('追加')?1:(b.level||'').includes('追加')?-1:0})};function 格式化金额(v){if(!v)return'-';if(v>=1e8)return(v/1e8).toFixed(2)+'亿';if(v>=1e4)return(v/1e4).toFixed(0)+'万';return v.toLocaleString()}
+function 解析金额(s){if(!s)return 0;if(s==='浮动')return 0;s=String(s).replace(/[,，]/g,'');const n=parseInt(s);return isNaN(n)?0:n}
+function 生成ID(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
 
 // --- Checking ---
-function isFuyunActive(draw){return Number(draw.code)>=2026014&&draw.pool_money>=300000000}
-function checkSSQ(ticket,draw){
+function 有福运奖(draw){return Number(draw.code)>=2026014&&draw.pool_money>=300000000}
+function 查双色球(ticket,draw){
   const tR=new Set(ticket.red.split(',')),tB=ticket.blue,dR=new Set(draw.red.split(',')),dB=draw.blue;
   let rm=0;tR.forEach(n=>{if(dR.has(n))rm++});const bm=tB===dB?1:0;
   let p=null;
@@ -200,7 +200,7 @@ function checkSSQ(ticket,draw){
   else if((rm===5&&bm===0)||(rm===4&&bm===1))p=4;
   else if((rm===4&&bm===0)||(rm===3&&bm===1))p=5;
   else if(bm===1)p=6;
-  else if(rm===3&&bm===0&&isFuyunActive(draw))p=7;
+  else if(rm===3&&bm===0&&有福运奖(draw))p=7;
   if(!p)return null;
   let amt=p===7?'5':'浮动';
   const grades=draw.prize_grades_parsed||[];
@@ -213,7 +213,7 @@ function checkSSQ(ticket,draw){
   }
   return{prize:p,name:SSQ_NAMES[p],amount:amt};
 }
-function checkDLT(ticket,draw){
+function 查大乐透(ticket,draw){
   const tF=new Set(ticket.front.split(',')),tB=new Set(ticket.back.split(',')),dF=new Set(draw.front.split(',')),dB=new Set(draw.back.split(','));
   let fm=0,bm=0;tF.forEach(n=>{if(dF.has(n))fm++});tB.forEach(n=>{if(dB.has(n))bm++});
   const code=draw.code;
@@ -259,9 +259,9 @@ function checkDLT(ticket,draw){
   }
   return{prize:p,name:DLT_NAMES[p],amount:amt};
 }
-function checkTicket(lottery,ticket,draw){return lottery==='ssq'?checkSSQ(ticket,draw):checkDLT(ticket,draw)}
+function 查号码(lottery,ticket,draw){return lottery==='ssq'?查双色球(ticket,draw):查大乐透(ticket,draw)}
 
-function parseLine(line,lt){
+function 解析号码(line,lt){
   line=line.replace(/ \+ /g,'|').replace(/\+/g,'|');const parts=line.split('|');
   if(lt==='ssq'){
     if(parts.length===2){const r=parts[0].trim().replace(/ /g,',').replace(/,,/g,',').split(',').filter(Boolean);const b=parts[1].trim().replace(/ /g,'');if(r.length===6&&b)return{red:r.map(n=>n.padStart(2,'0')).join(','),blue:b.padStart(2,'0')}}
@@ -274,17 +274,17 @@ function parseLine(line,lt){
 }
 
 // --- Storage ---
-function loadTickets(){try{return JSON.parse(localStorage.getItem('lottery_tickets')||'[]')}catch{return[]}}
-function saveTickets(t){localStorage.setItem('lottery_tickets',JSON.stringify(t))}
+function 读取号码(){try{return JSON.parse(localStorage.getItem('lottery_tickets')||'[]')}catch{return[]}}
+function 存储号码(t){localStorage.setItem('lottery_tickets',JSON.stringify(t))}
 
 // --- Shared state ---
 const allData=ref(null);
 const toast=ref(null);
 const refreshing=ref(false);
 const refreshOk=ref(false);
-function showToast(msg,type='info',dur=3000){toast.value={msg,type};setTimeout(()=>{toast.value=null},dur)}
+function 弹出提示(msg,type='info',dur=3000){toast.value={msg,type};setTimeout(()=>{toast.value=null},dur)}
 
-async function loadData(){
+async function 加载数据(){
   if(allData.value)return allData.value;
   const r=await fetch(DATA_URL);allData.value=await r.json();return allData.value;
 }
@@ -293,17 +293,17 @@ async function loadData(){
 const DrawList={
   setup(){
     const lottery=ref('ssq'),page=ref(1),pageSize=30,loading=ref(true),codeSearch=ref(''),expanded=ref({}),dataReady=ref(false);
-    onMounted(async()=>{loading.value=true;try{await loadData();dataReady.value=true}catch(e){}finally{loading.value=false}});
+    onMounted(async()=>{loading.value=true;try{await 加载数据();dataReady.value=true}catch(e){}finally{loading.value=false}});
     const filtered=computed(()=>{if(!allData.value)return[];const items=allData.value[lottery.value]||[];return codeSearch.value?items.filter(d=>d.code.includes(codeSearch.value)):items});function switchLottery(lt){lottery.value=lt;page.value=1;codeSearch.value='';expanded.value={}}
     function searchCode(){page.value=1}
 	    function toggleExpand(code){expanded.value[code]=!expanded.value[code]}
-	    function ssqName(t){return SSQ_NAMES[t]||('奖'+t)}
+	    function 双色球奖名(t){return SSQ_NAMES[t]||('奖'+t)}
     const total=computed(()=>filtered.value.length),totalPages=computed(()=>Math.ceil(total.value/pageSize));
     const items=computed(()=>{const s=(page.value-1)*pageSize;return filtered.value.slice(s,s+pageSize)});
     function goto(p){if(p<1||p>totalPages.value)return;page.value=p;window.scrollTo({top:0,behavior:'smooth'})}
     const pageNumbers=computed(()=>{const pages=[];const tp=totalPages.value,cp=page.value;let s=Math.max(1,cp-3),e=Math.min(tp,cp+3);if(s>1)pages.push(1);if(s>2)pages.push('...');for(let i=s;i<=e;i++)pages.push(i);if(e<tp-1)pages.push('...');if(e<tp)pages.push(tp);return pages});
     // init now inline via onMounted above
-    return{lottery,page,items,total,totalPages,loading,codeSearch,switchLottery,goto,searchCode,pageNumbers,formatMoney,expanded,toggleExpand,ssqName,ssqCondition,dltCondition,sortDLTPrizes};
+    return{lottery,page,items,total,totalPages,loading,codeSearch,switchLottery,goto,searchCode,pageNumbers,格式化金额,expanded,toggleExpand,双色球奖名,双色球条件,大乐透条件,排序奖项};
   },
   template:`<div>
   <div class="tabs"><div class="tab" :class="{active:lottery==='ssq'}" @click="switchLottery('ssq')">双色球</div><div class="tab" :class="{active:lottery==='dlt'}" @click="switchLottery('dlt')">大乐透</div></div>
@@ -317,10 +317,10 @@ const DrawList={
       <td>{{d.code}}</td><td>{{d.draw_date}}</td><td>
         <span class="balls" v-if="lottery==='ssq'"><span v-for="n in (d.red||'').split(',')" class="ball ball-red">{{n}}</span><span class="ball ball-blue">{{d.blue}}</span></span>
         <span class="balls" v-else><span v-for="n in (d.front||'').split(',')" class="ball ball-red">{{n}}</span><span v-for="n in (d.back||'').split(',')" class="ball ball-blue">{{n}}</span></span>
-      </td><td>{{formatMoney(d.sales)}}</td><td>{{formatMoney(d.pool_money)}}</td>
+      </td><td>{{格式化金额(d.sales)}}</td><td>{{格式化金额(d.pool_money)}}</td>
     </tr>
     <tr v-if="expanded[d.code]" class="expand-row" @click.stop><td colspan="6"><div class="prize-mini-table"><table><thead><tr><th>奖项</th><th>条件</th><th>中奖注数</th><th>单注奖金</th><th v-if="lottery==='dlt'">总奖金</th></tr></thead>
-    <tbody><tr v-for="p in sortDLTPrizes(d.prize_grades_parsed||[]).filter(p=>(p.typenum||p.count)!==''||(p.typemoney||p.amount)!=='')" :key="p.type||p.level"><td class="highlight">{{lottery==='ssq'?ssqName(p.type):p.level}}</td><td style="font-size:11px;color:#64748b">{{lottery==='ssq'?ssqCondition(p.type):dltCondition(p.level,d.code)}}</td><td>{{p.typenum||p.count||'-'}}<span v-if="p._estimated" style="color:#d97706;font-size:11px" title="由七等奖推算">(推算)</span></td><td>{{p.typemoney||p.amount||'-'}}</td><td v-if="lottery==='dlt'">{{p.total||'-'}}<span v-if="p._estimated" style="color:#d97706;font-size:11px">(推算)</span></td></tr></tbody></table></div></td></tr></template></tbody></table></div>
+    <tbody><tr v-for="p in 排序奖项(d.prize_grades_parsed||[]).filter(p=>(p.typenum||p.count)!==''||(p.typemoney||p.amount)!=='')" :key="p.type||p.level"><td class="highlight">{{lottery==='ssq'?双色球奖名(p.type):p.level}}</td><td style="font-size:11px;color:#64748b">{{lottery==='ssq'?双色球条件(p.type):大乐透条件(p.level,d.code)}}</td><td>{{p.typenum||p.count||'-'}}<span v-if="p._estimated" style="color:#d97706;font-size:11px" title="由七等奖推算">(推算)</span></td><td>{{p.typemoney||p.amount||'-'}}</td><td v-if="lottery==='dlt'">{{p.total||'-'}}<span v-if="p._estimated" style="color:#d97706;font-size:11px">(推算)</span></td></tr></tbody></table></div></td></tr></template></tbody></table></div>
     <div class="pagination"><button :disabled="page<=1" @click="goto(page-1)">上一页</button>
       <div class="page-nums"><span v-for="p in pageNumbers" :key="p" :class="['page-num',{active:p===page}]" @click="typeof p==='number'&&goto(p)">{{p}}</span></div>
       <span>共{{total}}期</span><button :disabled="page>=totalPages" @click="goto(page+1)">下一页</button></div>
@@ -330,9 +330,9 @@ const DrawList={
 const DrawDetail={
   setup(){
     const route=VueRouter.useRoute();const draw=ref(null);const loading=ref(true);
-    onMounted(async()=>{loading.value=true;try{const d=await loadData();draw.value=(d[route.params.lottery]||[]).find(d=>d.code===route.params.code)||null}catch(e){console.error(e)}finally{loading.value=false}});
-    const prizes=computed(()=>sortDLTPrizes(draw.value?.prize_grades_parsed||[]));
-    return{draw,loading,prizes,lottery:route.params.lottery,formatMoney,ssqName:t=>SSQ_NAMES[t]||('奖'+t),ssqCondition,dltCondition,sortDLTPrizes};
+    onMounted(async()=>{loading.value=true;try{const d=await 加载数据();draw.value=(d[route.params.lottery]||[]).find(d=>d.code===route.params.code)||null}catch(e){console.error(e)}finally{loading.value=false}});
+    const prizes=computed(()=>排序奖项(draw.value?.prize_grades_parsed||[]));
+    return{draw,loading,prizes,lottery:route.params.lottery,格式化金额,双色球奖名:t=>SSQ_NAMES[t]||('奖'+t),双色球条件,大乐透条件,排序奖项};
   },
   template:`<div><div class="back-link"><router-link to="/">&larr; 返回</router-link></div>
   <div v-if="loading" class="loading-box">加载中...</div>
@@ -345,17 +345,17 @@ const DrawDetail={
         <template v-if="lottery==='ssq'"><span v-for="n in (draw.red||'').split(',')" class="ball ball-red">{{n}}</span><span class="sep">|</span><span class="ball ball-blue">{{draw.blue}}</span></template>
         <template v-else><span v-for="n in (draw.front||'').split(',')" class="ball ball-red">{{n}}</span><span class="sep">|</span><span v-for="n in (draw.back||'').split(',')" class="ball ball-blue">{{n}}</span></template>
       </div>
-      <div class="stat-row"><div class="stat-item"><div class="label">销售额</div><div class="value">{{formatMoney(draw.sales)}}</div></div><div class="stat-item"><div class="label">奖池</div><div class="value">{{formatMoney(draw.pool_money)}}</div></div></div>
+      <div class="stat-row"><div class="stat-item"><div class="label">销售额</div><div class="value">{{格式化金额(draw.sales)}}</div></div><div class="stat-item"><div class="label">奖池</div><div class="value">{{格式化金额(draw.pool_money)}}</div></div></div>
     </div></div>
     <div class="card" v-if="prizes.length"><h2>奖项明细</h2><div class="table-wrap"><table><thead><tr><th>奖项</th><th>条件</th><th>注数</th><th>单注金额</th><th v-if="lottery==='dlt'">总金额</th></tr></thead>
-    <tbody><tr v-for="p in sortDLTPrizes(prizes).filter(p=>(p.typenum||p.count)!==''||(p.typemoney||p.amount)!=='')" :key="p.type||p.level"><td class="highlight">{{p.type?ssqName(p.type):(p.level||'')}}</td><td style="font-size:12px;color:#64748b">{{lottery==='ssq'?ssqCondition(p.type):dltCondition(p.level,draw.code)}}</td><td>{{p.typenum||p.count||'-'}}<span v-if="p._estimated" style="color:#d97706;font-size:11px" title="由七等奖推算">(推算)</span></td><td>{{p.typemoney||p.amount||'-'}}</td><td v-if="lottery==='dlt'">{{p.total||'-'}}<span v-if="p._estimated" style="color:#d97706;font-size:11px">(推算)</span></td></tr></tbody></table></div></div>
+    <tbody><tr v-for="p in 排序奖项(prizes).filter(p=>(p.typenum||p.count)!==''||(p.typemoney||p.amount)!=='')" :key="p.type||p.level"><td class="highlight">{{p.type?双色球奖名(p.type):(p.level||'')}}</td><td style="font-size:12px;color:#64748b">{{lottery==='ssq'?双色球条件(p.type):大乐透条件(p.level,draw.code)}}</td><td>{{p.typenum||p.count||'-'}}<span v-if="p._estimated" style="color:#d97706;font-size:11px" title="由七等奖推算">(推算)</span></td><td>{{p.typemoney||p.amount||'-'}}</td><td v-if="lottery==='dlt'">{{p.total||'-'}}<span v-if="p._estimated" style="color:#d97706;font-size:11px">(推算)</span></td></tr></tbody></table></div></div>
   </div></div>`
 };
 
 // --- My Tickets Page ---
 const MyTickets={
   setup(){
-    const tickets=ref(loadTickets());
+    const tickets=ref(读取号码());
     const lottery=ref('ssq');
     const inputText=ref('');
     const label=ref('');
@@ -367,16 +367,16 @@ const MyTickets={
     function addTickets(){
       const lines=inputText.value.trim().split('\n').filter(l=>l.trim());
       const parsed=[];
-      for(const l of lines){const p=parseLine(l.trim(),lottery.value);if(p)parsed.push({id:uid(),lottery:lottery.value,numbers:p,label:label.value||(lottery.value==='ssq'?'双色球':'大乐透'),addedAt:new Date().toISOString().slice(0,10)})}
-      if(!parsed.length){showToast('请输入有效号码','error');return}
-      tickets.value=[...tickets.value,...parsed];saveTickets(tickets.value);
+      for(const l of lines){const p=解析号码(l.trim(),lottery.value);if(p)parsed.push({id:生成ID(),lottery:lottery.value,numbers:p,label:label.value||(lottery.value==='ssq'?'双色球':'大乐透'),addedAt:new Date().toISOString().slice(0,10)})}
+      if(!parsed.length){弹出提示('请输入有效号码','error');return}
+      tickets.value=[...tickets.value,...parsed];存储号码(tickets.value);
       inputText.value='';label.value='';
-      showToast(`已添加 ${parsed.length} 注号码`,'success');
+      弹出提示(`已添加 ${parsed.length} 注号码`,'success');
     }
 
-    function removeTicket(id){tickets.value=tickets.value.filter(t=>t.id!==id);saveTickets(tickets.value);showToast('已删除','info')}
+    function removeTicket(id){tickets.value=tickets.value.filter(t=>t.id!==id);存储号码(tickets.value);弹出提示('已删除','info')}
 
-    function clearAll(){if(!confirm('确定删除所有号码？'))return;tickets.value=[];saveTickets(tickets.value)}
+    function clearAll(){if(!confirm('确定删除所有号码？'))return;tickets.value=[];存储号码(tickets.value)}
 
     // Check all tickets against all draws, compute stats
     const ticketStats=computed(()=>{
@@ -385,8 +385,8 @@ const MyTickets={
         const draws=(allData.value[tk.lottery]||[]);
         const wins=[];
         for(const draw of draws){
-          const r=checkTicket(tk.lottery,tk.numbers,draw);
-          if(r)wins.push({code:draw.code,date:draw.date||draw.draw_date,prize:r.prize,name:r.name,amount:r.amount,amountInt:parseMoneyInt(r.amount)});
+          const r=查号码(tk.lottery,tk.numbers,draw);
+          if(r)wins.push({code:draw.code,date:draw.date||draw.draw_date,prize:r.prize,name:r.name,amount:r.amount,amountInt:解析金额(r.amount)});
         }
         // Stats
         const totalWins=wins.length;
@@ -418,10 +418,10 @@ const MyTickets={
       return tk.numbers.front+' + '+tk.numbers.back;
     }
 
-    onMounted(async()=>{await loadData();dataLoaded.value=true});
+    onMounted(async()=>{await 加载数据();dataLoaded.value=true});
 
     return{tickets,lottery,inputText,label,loading,expanded,dataLoaded,ticketStats,globalStats,
-           addTickets,removeTicket,clearAll,toggleExpand,fmtNums,formatMoney,parseMoneyInt,showAddModal};
+           addTickets,removeTicket,clearAll,toggleExpand,fmtNums,格式化金额,解析金额,showAddModal};
   },
   template:`<div>
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
@@ -436,7 +436,7 @@ const MyTickets={
 <div class="stat-cards" v-if="tickets.length&&dataLoaded">
   <div class="stat-card"><div class="label">保存号码</div><div class="value">{{globalStats.totalTickets}}注</div></div>
   <div class="stat-card"><div class="label">累计中奖</div><div class="value gold">{{globalStats.totalWins}}次</div></div>
-  <div class="stat-card"><div class="label">累计金额</div><div class="value gold">{{formatMoney(globalStats.totalAmount)}}</div></div>
+  <div class="stat-card"><div class="label">累计金额</div><div class="value gold">{{格式化金额(globalStats.totalAmount)}}</div></div>
   <div class="stat-card"><div class="label">最新中奖</div><div class="value" v-if="globalStats.latestWin">{{globalStats.latestWin.name}}<div class="sub">{{globalStats.latestWin.date}}</div></div><div class="value" v-else>-</div></div>
   <div class="stat-card"><div class="label">最大中奖</div><div class="value gold" v-if="globalStats.maxWin">{{globalStats.maxWin.name}} {{globalStats.maxWin.amount}}元<div class="sub">{{globalStats.maxWin.date}}</div></div><div class="value" v-else>-</div></div>
 </div>
@@ -475,7 +475,7 @@ const MyTickets={
       </div>
       <div v-if="ts.totalWins" class="ticket-stats">
         <div class="ticket-stat"><div class="ticket-stat-label">累计中奖</div><div class="ticket-stat-value">{{ts.totalWins}}次</div></div>
-        <div class="ticket-stat"><div class="ticket-stat-label">累计金额</div><div class="ticket-stat-value gold">{{formatMoney(ts.totalAmount)}}</div></div>
+        <div class="ticket-stat"><div class="ticket-stat-label">累计金额</div><div class="ticket-stat-value gold">{{格式化金额(ts.totalAmount)}}</div></div>
         <div class="ticket-stat"><div class="ticket-stat-label">最近中奖</div><div class="ticket-stat-value">{{ts.latest?.name}} {{ts.latest?.amount}}元</div><div class="ticket-stat-sub">{{ts.latest?.date}}</div></div>
         <div class="ticket-stat"><div class="ticket-stat-label">最大中奖</div><div class="ticket-stat-value gold">{{ts.maxWin?.name}} {{ts.maxWin?.amount}}元</div><div class="ticket-stat-sub">{{ts.maxWin?.date}}</div></div>
       </div>
@@ -497,7 +497,7 @@ const MyTickets={
 // --- App ---
 const app=createApp({
   setup(){
-    async function fetchJSON(url){
+    async function 请求JSON(url){
       // Try direct fetch first
       try{const r=await fetch(url,{signal:AbortSignal.timeout(8000)});if(r.ok)return await r.json()}catch(e){}
       // Fallback: CORS proxies
@@ -508,7 +508,7 @@ const app=createApp({
       return null;
     }
 
-    async function fetchHTML(url){
+    async function 请求HTML(url){
       // Try CORS proxies for HTML pages
       const proxies=['https://corsproxy.io/?url=','https://api.allorigins.win/raw?url='];
       for(const proxy of proxies){
@@ -517,11 +517,11 @@ const app=createApp({
       return null;
     }
 
-    async function fetchFuyunPrize(code){
+    async function 抓取福运奖(code){
       // Fetch SSQ prize data from 500.com detail page to get 福运奖 (type 7)
       const short=code.slice(2); // 2026047 -> 26047
       const url='https://kaijiang.500.com/shtml/ssq/'+short+'.shtml';
-      const html=await fetchHTML(url);
+      const html=await 请求HTML(url);
       if(!html)return null;
       try{
         const rows=html.match(/<tr[^>]*>([\s\S]*?)<\/tr>/gi)||[];
@@ -538,24 +538,24 @@ const app=createApp({
       }catch(e){return null}
     }
 
-    async function refreshData(){
+    async function 刷新数据(){
       refreshing.value=true;refreshOk.value=false;
-      await loadData();
+      await 加载数据();
       let newDraws=0;
       const year=new Date().getFullYear();
       // SSQ: fetch current year + recent draws
       try{
         const url=SSQ_API+'?name=ssq&issueStart='+year+'001&issueEnd='+year+'999&pageNo=1&pageSize=100';
-        const d=await fetchJSON(url);
+        const d=await 请求JSON(url);
         if(d&&d.state===0&&d.result){
           const existing=new Set((allData.value.ssq||[]).map(x=>x.code));
           const items=d.result.filter(x=>!existing.has(x.code));
           if(items.length){
-            const mapped=items.map(x=>{let pgParsed=[];try{pgParsed=JSON.parse(x.prizegrades||'[]')}catch(e){}return{code:x.code,draw_date:x.date,week_day:x.week||'',red:x.red,blue:x.blue,sales:+x.sales,pool_money:+x.poolbalance,content:x.content||'',prize_grades:x.prizegrades||'',prize_grades_parsed:isFuyunActive({code:x.code,pool_money:+x.poolbalance})?pgParsed.map(p=>p.type===7&&!p.typenum?{...p,typenum:'-',typemoney:'5'}:p):pgParsed}});
+            const mapped=items.map(x=>{let pgParsed=[];try{pgParsed=JSON.parse(x.prizegrades||'[]')}catch(e){}return{code:x.code,draw_date:x.date,week_day:x.week||'',red:x.red,blue:x.blue,sales:+x.sales,pool_money:+x.poolbalance,content:x.content||'',prize_grades:x.prizegrades||'',prize_grades_parsed:有福运奖({code:x.code,pool_money:+x.poolbalance})?pgParsed.map(p=>p.type===7&&!p.typenum?{...p,typenum:'-',typemoney:'5'}:p):pgParsed}});
             // Fetch 福运奖 data from 500.com for draws that qualify
-            const fuyunCodes=mapped.filter(d=>isFuyunActive(d)&&(!d.prize_grades_parsed.find(p=>p.type===7)||!d.prize_grades_parsed.find(p=>p.type===7)?.typenum||d.prize_grades_parsed.find(p=>p.type===7)?.typenum==='-'));
+            const fuyunCodes=mapped.filter(d=>有福运奖(d)&&(!d.prize_grades_parsed.find(p=>p.type===7)||!d.prize_grades_parsed.find(p=>p.type===7)?.typenum||d.prize_grades_parsed.find(p=>p.type===7)?.typenum==='-'));
             if(fuyunCodes.length){
-              const results=await Promise.allSettled(fuyunCodes.map(d=>fetchFuyunPrize(d.code)));
+              const results=await Promise.allSettled(fuyunCodes.map(d=>抓取福运奖(d.code)));
               results.forEach((r,i)=>{
                 if(r.status==='fulfilled'&&r.value){
                   fuyunCodes[i].prize_grades_parsed=r.value;
@@ -570,7 +570,7 @@ const app=createApp({
       // DLT: fetch latest page
       try{
         const url=DLT_API+'?gameNo=85&provinceId=0&pageSize=50&pageNo=1&is498=true';
-        const d=await fetchJSON(url);
+        const d=await 请求JSON(url);
         if(d&&d.value&&d.value.list){
           const existing=new Set((allData.value.dlt||[]).map(x=>x.code));
           const items=d.value.list.filter(x=>!existing.has(x.lotteryDrawNum));
@@ -586,10 +586,10 @@ const app=createApp({
       }catch(e){console.log('DLT refresh error:',e)}
 
       refreshing.value=false;
-      if(newDraws>0){refreshOk.value=true;showToast('已获取 '+newDraws+' 期新数据','success')}
-      else{showToast('数据已是最新，无需更新','info')}
+      if(newDraws>0){refreshOk.value=true;弹出提示('已获取 '+newDraws+' 期新数据','success')}
+      else{弹出提示('数据已是最新，无需更新','info')}
     }
-    return{toast,refreshing,refreshOk,refreshData};
+    return{toast,refreshing,refreshOk,刷新数据};
   }
 });
 
