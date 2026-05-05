@@ -149,12 +149,12 @@ select:focus,input:focus{outline:none;border-color:#2563eb;box-shadow:0 0 0 3px 
     <router-link to="/" :class="{active:$route.path==='/'}">开奖记录</router-link>
     <router-link to="/my" :class="{active:$route.path==='/my'}">我的号码</router-link>
   </div>
-  <button class="refresh-btn" :class="{success:refreshOk}" @click="刷新数据" :disabled="refreshing">
-    {{refreshing?'刷新中...':'刷新数据'}}
+  <button class="refresh-btn" :class="{success:刷新成功}" @click="刷新数据" :disabled="正在刷新">
+    {{正在刷新?'刷新中...':'刷新数据'}}
   </button>
 </nav>
 <div class="container">
-  <div v-if="toast" class="refresh-toast" :class="toast.type">{{toast.msg}}</div>
+  <div v-if="提示框" class="refresh-toast" :class="提示框.type">{{提示框.msg}}</div>
   <router-view></router-view>
 </div>
 </div>
@@ -165,7 +165,7 @@ const {createRouter,createWebHashHistory}=VueRouter;
 
 const DATA_URL='./data/lottery_data.json';
 const SSQ_API='https://www.cwl.gov.cn/cwl_admin/front/cwlkj/search/kjxx/findDrawNotice';
-const DLT_API='https://webapi.sporttery.cn/gateway/lottery/getHistoryPageListV1.qry';
+const DLT_API='https://webapi.sporttery.cn/gateway/彩种/getHistoryPageListV1.qry';
 const SSQ_NAMES={1:'一等奖',2:'二等奖',3:'三等奖',4:'四等奖',5:'五等奖',6:'六等奖',7:'福运奖'};
 const DLT_NAMES={1:'一等奖',2:'二等奖',3:'三等奖',4:'四等奖',5:'五等奖',6:'六等奖',7:'七等奖',8:'八等奖',9:'九等奖'};
 
@@ -191,32 +191,32 @@ function 解析金额(s){if(!s)return 0;if(s==='浮动')return 0;s=String(s).rep
 function 生成ID(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
 
 // --- Checking ---
-function 有福运奖(draw){return Number(draw.code)>=2026014&&draw.pool_money>=300000000}
-function 查双色球(ticket,draw){
-  const tR=new Set(ticket.red.split(',')),tB=ticket.blue,dR=new Set(draw.red.split(',')),dB=draw.blue;
+function 有福运奖(开奖){return Number(开奖.code)>=2026014&&开奖.pool_money>=300000000}
+function 查双色球(ticket,开奖){
+  const tR=new Set(ticket.red.split(',')),tB=ticket.blue,dR=new Set(开奖.red.split(',')),dB=开奖.blue;
   let rm=0;tR.forEach(n=>{if(dR.has(n))rm++});const bm=tB===dB?1:0;
   let p=null;
   if(rm===6&&bm===1)p=1;else if(rm===6&&bm===0)p=2;else if(rm===5&&bm===1)p=3;
   else if((rm===5&&bm===0)||(rm===4&&bm===1))p=4;
   else if((rm===4&&bm===0)||(rm===3&&bm===1))p=5;
   else if(bm===1)p=6;
-  else if(rm===3&&bm===0&&有福运奖(draw))p=7;
+  else if(rm===3&&bm===0&&有福运奖(开奖))p=7;
   if(!p)return null;
   let amt=p===7?'5':'浮动';
-  const grades=draw.prize_grades_parsed||[];
+  const grades=开奖.prize_grades_parsed||[];
   for(const g of grades){
     if(Number(g.type)===p){const m=g.typemoney||g.amount||'';if(m&&m!=='0')amt=m;break}
   }
   // Fallback: try parsing prize_grades string if parsed is empty
-  if(amt==='浮动'&&!grades.length&&draw.prize_grades){
-    try{const pg=JSON.parse(draw.prize_grades);for(const g of pg){if(Number(g.type)===p){amt=g.typemoney||'浮动';break}}}catch(e){}
+  if(amt==='浮动'&&!grades.length&&开奖.prize_grades){
+    try{const pg=JSON.parse(开奖.prize_grades);for(const g of pg){if(Number(g.type)===p){amt=g.typemoney||'浮动';break}}}catch(e){}
   }
   return{prize:p,name:SSQ_NAMES[p],amount:amt};
 }
-function 查大乐透(ticket,draw){
-  const tF=new Set(ticket.front.split(',')),tB=new Set(ticket.back.split(',')),dF=new Set(draw.front.split(',')),dB=new Set(draw.back.split(','));
+function 查大乐透(ticket,开奖){
+  const tF=new Set(ticket.front.split(',')),tB=new Set(ticket.back.split(',')),dF=new Set(开奖.front.split(',')),dB=new Set(开奖.back.split(','));
   let fm=0,bm=0;tF.forEach(n=>{if(dF.has(n))fm++});tB.forEach(n=>{if(dB.has(n))bm++});
-  const code=draw.code;
+  const code=开奖.code;
   let p=null;
   // DLT rule periods: <14052=8tiers, 14052-19018=6tiers, 19019-26013=9tiers, >=26014=7tiers
   if(code>='26014'){
@@ -247,19 +247,19 @@ function 查大乐透(ticket,draw){
   if(!p)return null;
   let amt='浮动';
   const target=DLT_NAMES[p];
-  const grades=draw.prize_grades_parsed||[];
+  const grades=开奖.prize_grades_parsed||[];
   for(const g of grades){
     const lv=String(g.level||'');
     if(lv&&lv.includes(target)&&!lv.includes('追加')){
       const m=g.amount||g.typemoney||'';if(m)amt=m;break;
     }
   }
-  if(amt==='浮动'&&!grades.length&&draw.prize_grades){
-    try{const pg=JSON.parse(draw.prize_grades);for(const g of pg){const lv=String(g.level||'');if(lv.includes(target)&&!lv.includes('追加')){amt=g.amount||'浮动';break}}}catch(e){}
+  if(amt==='浮动'&&!grades.length&&开奖.prize_grades){
+    try{const pg=JSON.parse(开奖.prize_grades);for(const g of pg){const lv=String(g.level||'');if(lv.includes(target)&&!lv.includes('追加')){amt=g.amount||'浮动';break}}}catch(e){}
   }
   return{prize:p,name:DLT_NAMES[p],amount:amt};
 }
-function 查号码(lottery,ticket,draw){return lottery==='ssq'?查双色球(ticket,draw):查大乐透(ticket,draw)}
+function 查号码(彩种,ticket,开奖){return 彩种==='ssq'?查双色球(ticket,开奖):查大乐透(ticket,开奖)}
 
 function 解析号码(line,lt){
   line=line.replace(/ \+ /g,'|').replace(/\+/g,'|');const parts=line.split('|');
@@ -278,77 +278,77 @@ function 读取号码(){try{return JSON.parse(localStorage.getItem('lottery_tick
 function 存储号码(t){localStorage.setItem('lottery_tickets',JSON.stringify(t))}
 
 // --- Shared state ---
-const allData=ref(null);
-const toast=ref(null);
-const refreshing=ref(false);
-const refreshOk=ref(false);
-function 弹出提示(msg,type='info',dur=3000){toast.value={msg,type};setTimeout(()=>{toast.value=null},dur)}
+const 全部数据=ref(null);
+const 提示框=ref(null);
+const 正在刷新=ref(false);
+const 刷新成功=ref(false);
+function 弹出提示(msg,type='info',dur=3000){提示框.value={msg,type};setTimeout(()=>{提示框.value=null},dur)}
 
 async function 加载数据(){
-  if(allData.value)return allData.value;
-  const r=await fetch(DATA_URL);allData.value=await r.json();return allData.value;
+  if(全部数据.value)return 全部数据.value;
+  const r=await fetch(DATA_URL);全部数据.value=await r.json();return 全部数据.value;
 }
 
 // --- Components ---
 const DrawList={
   setup(){
-    const lottery=ref('ssq'),page=ref(1),pageSize=30,loading=ref(true),codeSearch=ref(''),expanded=ref({}),dataReady=ref(false);
-    onMounted(async()=>{loading.value=true;try{await 加载数据();dataReady.value=true}catch(e){}finally{loading.value=false}});
-    const filtered=computed(()=>{if(!allData.value)return[];const items=allData.value[lottery.value]||[];return codeSearch.value?items.filter(d=>d.code.includes(codeSearch.value)):items});function switchLottery(lt){lottery.value=lt;page.value=1;codeSearch.value='';expanded.value={}}
-    function searchCode(){page.value=1}
-	    function toggleExpand(code){expanded.value[code]=!expanded.value[code]}
+    const 彩种=ref('ssq'),页码=ref(1),每页数=30,加载中=ref(true),搜索期号=ref(''),已展开=ref({}),数据就绪=ref(false);
+    onMounted(async()=>{加载中.value=true;try{await 加载数据();数据就绪.value=true}catch(e){}finally{加载中.value=false}});
+    const 过滤结果=computed(()=>{if(!全部数据.value)return[];const 列表=全部数据.value[彩种.value]||[];return 搜索期号.value?列表.filter(d=>d.code.includes(搜索期号.value)):列表});function 切换彩种(lt){彩种.value=lt;页码.value=1;搜索期号.value='';已展开.value={}}
+    function 执行搜索(){页码.value=1}
+	    function 切换展开(code){已展开.value[code]=!已展开.value[code]}
 	    function 双色球奖名(t){return SSQ_NAMES[t]||('奖'+t)}
-    const total=computed(()=>filtered.value.length),totalPages=computed(()=>Math.ceil(total.value/pageSize));
-    const items=computed(()=>{const s=(page.value-1)*pageSize;return filtered.value.slice(s,s+pageSize)});
-    function goto(p){if(p<1||p>totalPages.value)return;page.value=p;window.scrollTo({top:0,behavior:'smooth'})}
-    const pageNumbers=computed(()=>{const pages=[];const tp=totalPages.value,cp=page.value;let s=Math.max(1,cp-3),e=Math.min(tp,cp+3);if(s>1)pages.push(1);if(s>2)pages.push('...');for(let i=s;i<=e;i++)pages.push(i);if(e<tp-1)pages.push('...');if(e<tp)pages.push(tp);return pages});
+    const 总数=computed(()=>过滤结果.value.length),总页数=computed(()=>Math.ceil(总数.value/每页数));
+    const 列表=computed(()=>{const s=(页码.value-1)*每页数;return 过滤结果.value.slice(s,s+每页数)});
+    function 跳转页(p){if(p<1||p>总页数.value)return;页码.value=p;window.scrollTo({top:0,behavior:'smooth'})}
+    const 页码列表=computed(()=>{const pages=[];const tp=总页数.value,cp=页码.value;let s=Math.max(1,cp-3),e=Math.min(tp,cp+3);if(s>1)pages.push(1);if(s>2)pages.push('...');for(let i=s;i<=e;i++)pages.push(i);if(e<tp-1)pages.push('...');if(e<tp)pages.push(tp);return pages});
     // init now inline via onMounted above
-    return{lottery,page,items,total,totalPages,loading,codeSearch,switchLottery,goto,searchCode,pageNumbers,格式化金额,expanded,toggleExpand,双色球奖名,双色球条件,大乐透条件,排序奖项};
+    return{彩种,页码,列表,总数,总页数,加载中,搜索期号,切换彩种,跳转页,搜索期号,页码列表,格式化金额,已展开,切换展开,双色球奖名,双色球条件,大乐透条件,排序奖项};
   },
   template:`<div>
-  <div class="tabs"><div class="tab" :class="{active:lottery==='ssq'}" @click="switchLottery('ssq')">双色球</div><div class="tab" :class="{active:lottery==='dlt'}" @click="switchLottery('dlt')">大乐透</div></div>
-  <div class="form-row" style="margin-bottom:12px"><label>期号:</label><input type="text" v-model="codeSearch" @keyup.enter="searchCode" placeholder="输入期号..."><button class="btn btn-secondary btn-sm" @click="searchCode">搜索</button><button class="btn btn-secondary btn-sm" v-if="codeSearch" @click="codeSearch='';searchCode()">清除</button></div>
-  <div v-if="loading" class="loading-box">加载中...</div>
-  <div v-else-if="!items.length" class="loading-box">暂无数据</div>
+  <div class="tabs"><div class="tab" :class="{active:彩种==='ssq'}" @click="切换彩种('ssq')">双色球</div><div class="tab" :class="{active:彩种==='dlt'}" @click="切换彩种('dlt')">大乐透</div></div>
+  <div class="form-row" style="margin-bottom:12px"><label>期号:</label><input type="text" v-model="搜索期号" @keyup.enter="搜索期号" placeholder="输入期号..."><button class="btn btn-secondary btn-sm" @click="搜索期号">搜索</button><button class="btn btn-secondary btn-sm" v-if="搜索期号" @click="搜索期号='';搜索期号()">清除</button></div>
+  <div v-if="加载中" class="loading-box">加载中...</div>
+  <div v-else-if="!列表.length" class="loading-box">暂无数据</div>
   <div v-else>
     <div class="table-wrap"><table><thead><tr><th style="width:54px">明细</th><th>期号</th><th>日期</th><th>开奖号码</th><th>销售额</th><th>奖池</th></tr></thead>
-    <tbody><template v-for="d in items" :key="d.code"><tr @click="$router.push('/draw/'+lottery+'/'+d.code)">
-      <td @click.stop><button class="expand-btn" :class="{'is-open':expanded[d.code]}" @click.stop="toggleExpand(d.code)">{{expanded[d.code]?'收起':'展开'}}</button></td>
+    <tbody><template v-for="d in 列表" :key="d.code"><tr @click="$router.push('/开奖/'+彩种+'/'+d.code)">
+      <td @click.stop><button class="expand-btn" :class="{'is-open':已展开[d.code]}" @click.stop="切换展开(d.code)">{{已展开[d.code]?'收起':'展开'}}</button></td>
       <td>{{d.code}}</td><td>{{d.draw_date}}</td><td>
-        <span class="balls" v-if="lottery==='ssq'"><span v-for="n in (d.red||'').split(',')" class="ball ball-red">{{n}}</span><span class="ball ball-blue">{{d.blue}}</span></span>
+        <span class="balls" v-if="彩种==='ssq'"><span v-for="n in (d.red||'').split(',')" class="ball ball-red">{{n}}</span><span class="ball ball-blue">{{d.blue}}</span></span>
         <span class="balls" v-else><span v-for="n in (d.front||'').split(',')" class="ball ball-red">{{n}}</span><span v-for="n in (d.back||'').split(',')" class="ball ball-blue">{{n}}</span></span>
       </td><td>{{格式化金额(d.sales)}}</td><td>{{格式化金额(d.pool_money)}}</td>
     </tr>
-    <tr v-if="expanded[d.code]" class="expand-row" @click.stop><td colspan="6"><div class="prize-mini-table"><table><thead><tr><th>奖项</th><th>条件</th><th>中奖注数</th><th>单注奖金</th><th v-if="lottery==='dlt'">总奖金</th></tr></thead>
-    <tbody><tr v-for="p in 排序奖项(d.prize_grades_parsed||[]).filter(p=>(p.typenum||p.count)!==''||(p.typemoney||p.amount)!=='')" :key="p.type||p.level"><td class="highlight">{{lottery==='ssq'?双色球奖名(p.type):p.level}}</td><td style="font-size:11px;color:#64748b">{{lottery==='ssq'?双色球条件(p.type):大乐透条件(p.level,d.code)}}</td><td>{{p.typenum||p.count||'-'}}<span v-if="p._estimated" style="color:#d97706;font-size:11px" title="由七等奖推算">(推算)</span></td><td>{{p.typemoney||p.amount||'-'}}</td><td v-if="lottery==='dlt'">{{p.total||'-'}}<span v-if="p._estimated" style="color:#d97706;font-size:11px">(推算)</span></td></tr></tbody></table></div></td></tr></template></tbody></table></div>
-    <div class="pagination"><button :disabled="page<=1" @click="goto(page-1)">上一页</button>
-      <div class="page-nums"><span v-for="p in pageNumbers" :key="p" :class="['page-num',{active:p===page}]" @click="typeof p==='number'&&goto(p)">{{p}}</span></div>
-      <span>共{{total}}期</span><button :disabled="page>=totalPages" @click="goto(page+1)">下一页</button></div>
+    <tr v-if="已展开[d.code]" class="expand-row" @click.stop><td colspan="6"><div class="prize-mini-table"><table><thead><tr><th>奖项</th><th>条件</th><th>中奖注数</th><th>单注奖金</th><th v-if="彩种==='dlt'">总奖金</th></tr></thead>
+    <tbody><tr v-for="p in 排序奖项(d.prize_grades_parsed||[]).filter(p=>(p.typenum||p.count)!==''||(p.typemoney||p.amount)!=='')" :key="p.type||p.level"><td class="highlight">{{彩种==='ssq'?双色球奖名(p.type):p.level}}</td><td style="font-size:11px;color:#64748b">{{彩种==='ssq'?双色球条件(p.type):大乐透条件(p.level,d.code)}}</td><td>{{p.typenum||p.count||'-'}}<span v-if="p._estimated" style="color:#d97706;font-size:11px" title="由七等奖推算">(推算)</span></td><td>{{p.typemoney||p.amount||'-'}}</td><td v-if="彩种==='dlt'">{{p.总数||'-'}}<span v-if="p._estimated" style="color:#d97706;font-size:11px">(推算)</span></td></tr></tbody></table></div></td></tr></template></tbody></table></div>
+    <div class="pagination"><button :disabled="页码<=1" @click="跳转页(页码-1)">上一页</button>
+      <div class="page-nums"><span v-for="p in 页码列表" :key="p" :class="['page-num',{active:p===页码}]" @click="typeof p==='number'&&跳转页(p)">{{p}}</span></div>
+      <span>共{{总数}}期</span><button :disabled="页码>=总页数" @click="跳转页(页码+1)">下一页</button></div>
   </div></div>`
 };
 
 const DrawDetail={
   setup(){
-    const route=VueRouter.useRoute();const draw=ref(null);const loading=ref(true);
-    onMounted(async()=>{loading.value=true;try{const d=await 加载数据();draw.value=(d[route.params.lottery]||[]).find(d=>d.code===route.params.code)||null}catch(e){console.error(e)}finally{loading.value=false}});
-    const prizes=computed(()=>排序奖项(draw.value?.prize_grades_parsed||[]));
-    return{draw,loading,prizes,lottery:route.params.lottery,格式化金额,双色球奖名:t=>SSQ_NAMES[t]||('奖'+t),双色球条件,大乐透条件,排序奖项};
+    const route=VueRouter.useRoute();const 开奖=ref(null);const 加载中=ref(true);
+    onMounted(async()=>{加载中.value=true;try{const d=await 加载数据();开奖.value=(d[route.params.彩种]||[]).find(d=>d.code===route.params.code)||null}catch(e){console.error(e)}finally{加载中.value=false}});
+    const prizes=computed(()=>排序奖项(开奖.value?.prize_grades_parsed||[]));
+    return{开奖,加载中,prizes,彩种:route.params.彩种,格式化金额,双色球奖名:t=>SSQ_NAMES[t]||('奖'+t),双色球条件,大乐透条件,排序奖项};
   },
   template:`<div><div class="back-link"><router-link to="/">&larr; 返回</router-link></div>
-  <div v-if="loading" class="loading-box">加载中...</div>
-  <div v-else-if="!draw" class="loading-box" style="color:#f87171">未找到</div>
+  <div v-if="加载中" class="loading-box">加载中...</div>
+  <div v-else-if="!开奖" class="loading-box" style="color:#f87171">未找到</div>
   <div v-else>
     <div class="card"><div class="draw-header">
-      <h1>{{lottery==='ssq'?'双色球':'大乐透'}} 第{{draw.code}}期</h1>
-      <div class="date">{{draw.draw_date}}</div>
+      <h1>{{彩种==='ssq'?'双色球':'大乐透'}} 第{{开奖.code}}期</h1>
+      <div class="date">{{开奖.draw_date}}</div>
       <div class="draw-balls">
-        <template v-if="lottery==='ssq'"><span v-for="n in (draw.red||'').split(',')" class="ball ball-red">{{n}}</span><span class="sep">|</span><span class="ball ball-blue">{{draw.blue}}</span></template>
-        <template v-else><span v-for="n in (draw.front||'').split(',')" class="ball ball-red">{{n}}</span><span class="sep">|</span><span v-for="n in (draw.back||'').split(',')" class="ball ball-blue">{{n}}</span></template>
+        <template v-if="彩种==='ssq'"><span v-for="n in (开奖.red||'').split(',')" class="ball ball-red">{{n}}</span><span class="sep">|</span><span class="ball ball-blue">{{开奖.blue}}</span></template>
+        <template v-else><span v-for="n in (开奖.front||'').split(',')" class="ball ball-red">{{n}}</span><span class="sep">|</span><span v-for="n in (开奖.back||'').split(',')" class="ball ball-blue">{{n}}</span></template>
       </div>
-      <div class="stat-row"><div class="stat-item"><div class="label">销售额</div><div class="value">{{格式化金额(draw.sales)}}</div></div><div class="stat-item"><div class="label">奖池</div><div class="value">{{格式化金额(draw.pool_money)}}</div></div></div>
+      <div class="stat-row"><div class="stat-item"><div class="label">销售额</div><div class="value">{{格式化金额(开奖.sales)}}</div></div><div class="stat-item"><div class="label">奖池</div><div class="value">{{格式化金额(开奖.pool_money)}}</div></div></div>
     </div></div>
-    <div class="card" v-if="prizes.length"><h2>奖项明细</h2><div class="table-wrap"><table><thead><tr><th>奖项</th><th>条件</th><th>注数</th><th>单注金额</th><th v-if="lottery==='dlt'">总金额</th></tr></thead>
-    <tbody><tr v-for="p in 排序奖项(prizes).filter(p=>(p.typenum||p.count)!==''||(p.typemoney||p.amount)!=='')" :key="p.type||p.level"><td class="highlight">{{p.type?双色球奖名(p.type):(p.level||'')}}</td><td style="font-size:12px;color:#64748b">{{lottery==='ssq'?双色球条件(p.type):大乐透条件(p.level,draw.code)}}</td><td>{{p.typenum||p.count||'-'}}<span v-if="p._estimated" style="color:#d97706;font-size:11px" title="由七等奖推算">(推算)</span></td><td>{{p.typemoney||p.amount||'-'}}</td><td v-if="lottery==='dlt'">{{p.total||'-'}}<span v-if="p._estimated" style="color:#d97706;font-size:11px">(推算)</span></td></tr></tbody></table></div></div>
+    <div class="card" v-if="prizes.length"><h2>奖项明细</h2><div class="table-wrap"><table><thead><tr><th>奖项</th><th>条件</th><th>注数</th><th>单注金额</th><th v-if="彩种==='dlt'">总金额</th></tr></thead>
+    <tbody><tr v-for="p in 排序奖项(prizes).filter(p=>(p.typenum||p.count)!==''||(p.typemoney||p.amount)!=='')" :key="p.type||p.level"><td class="highlight">{{p.type?双色球奖名(p.type):(p.level||'')}}</td><td style="font-size:12px;color:#64748b">{{彩种==='ssq'?双色球条件(p.type):大乐透条件(p.level,开奖.code)}}</td><td>{{p.typenum||p.count||'-'}}<span v-if="p._estimated" style="color:#d97706;font-size:11px" title="由七等奖推算">(推算)</span></td><td>{{p.typemoney||p.amount||'-'}}</td><td v-if="彩种==='dlt'">{{p.总数||'-'}}<span v-if="p._estimated" style="color:#d97706;font-size:11px">(推算)</span></td></tr></tbody></table></div></div>
   </div></div>`
 };
 
@@ -356,37 +356,37 @@ const DrawDetail={
 const MyTickets={
   setup(){
     const tickets=ref(读取号码());
-    const lottery=ref('ssq');
-    const inputText=ref('');
+    const 彩种=ref('ssq');
+    const 输入内容=ref('');
     const label=ref('');
-    const loading=ref(false);
-    const expanded=ref({});const showAddModal=ref(false);
-    const dataLoaded=ref(false);
+    const 加载中=ref(false);
+    const 已展开=ref({});const 显示弹窗=ref(false);
+    const 数据就绪=ref(false);
 
     // Add tickets from input
-    function addTickets(){
-      const lines=inputText.value.trim().split('\n').filter(l=>l.trim());
+    function 添加号码(){
+      const lines=输入内容.value.trim().split('\n').filter(l=>l.trim());
       const parsed=[];
-      for(const l of lines){const p=解析号码(l.trim(),lottery.value);if(p)parsed.push({id:生成ID(),lottery:lottery.value,numbers:p,label:label.value||(lottery.value==='ssq'?'双色球':'大乐透'),addedAt:new Date().toISOString().slice(0,10)})}
+      for(const l of lines){const p=解析号码(l.trim(),彩种.value);if(p)parsed.push({id:生成ID(),彩种:彩种.value,numbers:p,label:label.value||(彩种.value==='ssq'?'双色球':'大乐透'),addedAt:new Date().toISOString().slice(0,10)})}
       if(!parsed.length){弹出提示('请输入有效号码','error');return}
       tickets.value=[...tickets.value,...parsed];存储号码(tickets.value);
-      inputText.value='';label.value='';
+      输入内容.value='';label.value='';
       弹出提示(`已添加 ${parsed.length} 注号码`,'success');
     }
 
-    function removeTicket(id){tickets.value=tickets.value.filter(t=>t.id!==id);存储号码(tickets.value);弹出提示('已删除','info')}
+    function 删除号码(id){tickets.value=tickets.value.filter(t=>t.id!==id);存储号码(tickets.value);弹出提示('已删除','info')}
 
-    function clearAll(){if(!confirm('确定删除所有号码？'))return;tickets.value=[];存储号码(tickets.value)}
+    function 清空全部(){if(!confirm('确定删除所有号码？'))return;tickets.value=[];存储号码(tickets.value)}
 
     // Check all tickets against all draws, compute stats
-    const ticketStats=computed(()=>{
-      if(!allData.value)return[];
+    const 号码统计=computed(()=>{
+      if(!全部数据.value)return[];
       return tickets.value.map(tk=>{
-        const draws=(allData.value[tk.lottery]||[]);
+        const draws=(全部数据.value[tk.彩种]||[]);
         const wins=[];
-        for(const draw of draws){
-          const r=查号码(tk.lottery,tk.numbers,draw);
-          if(r)wins.push({code:draw.code,date:draw.date||draw.draw_date,prize:r.prize,name:r.name,amount:r.amount,amountInt:解析金额(r.amount)});
+        for(const 开奖 of draws){
+          const r=查号码(tk.彩种,tk.numbers,开奖);
+          if(r)wins.push({code:开奖.code,date:开奖.date||开奖.draw_date,prize:r.prize,name:r.name,amount:r.amount,amountInt:解析金额(r.amount)});
         }
         // Stats
         const totalWins=wins.length;
@@ -401,9 +401,9 @@ const MyTickets={
     });
 
     // Global stats
-    const globalStats=computed(()=>{
+    const 总统计=computed(()=>{
       let totalTickets=tickets.value.length,totalWins=0,totalAmount=0,latestWin=null,maxWin=null;
-      for(const ts of ticketStats.value){
+      for(const ts of 号码统计.value){
         totalWins+=ts.totalWins;totalAmount+=ts.totalAmount;
         if(ts.latest&&(!latestWin||ts.latest.date>latestWin.date))latestWin=ts.latest;
         if(ts.maxWin&&(!maxWin||ts.maxWin.amountInt>maxWin.amountInt||(ts.maxWin.amountInt===maxWin.amountInt&&ts.maxWin.date>maxWin.date)))maxWin=ts.maxWin;
@@ -411,66 +411,66 @@ const MyTickets={
       return{totalTickets,totalWins,totalAmount,latestWin,maxWin};
     });
 
-    function toggleExpand(id){expanded.value[id]=!expanded.value[id]}
+    function 切换展开(id){已展开.value[id]=!已展开.value[id]}
 
-    function fmtNums(tk){
-      if(tk.lottery==='ssq')return tk.numbers.red+' + '+tk.numbers.blue;
+    function 格式化号码(tk){
+      if(tk.彩种==='ssq')return tk.numbers.red+' + '+tk.numbers.blue;
       return tk.numbers.front+' + '+tk.numbers.back;
     }
 
-    onMounted(async()=>{await 加载数据();dataLoaded.value=true});
+    onMounted(async()=>{await 加载数据();数据就绪.value=true});
 
-    return{tickets,lottery,inputText,label,loading,expanded,dataLoaded,ticketStats,globalStats,
-           addTickets,removeTicket,clearAll,toggleExpand,fmtNums,格式化金额,解析金额,showAddModal};
+    return{tickets,彩种,输入内容,label,加载中,已展开,数据就绪,号码统计,总统计,
+           添加号码,删除号码,清空全部,切换展开,格式化号码,格式化金额,解析金额,显示弹窗};
   },
   template:`<div>
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+  <div style="display:flex;justify-content:space-between;align-列表:center;margin-bottom:12px">
   <h2 style="color:#1e293b;margin:0">我的号码</h2>
   <div style="display:flex;gap:6px">
-    <button class="btn btn-danger btn-sm" @click="clearAll" v-if="tickets.length">清空全部</button>
-    <button class="btn btn-primary" @click="showAddModal=true">+ 添加号码</button>
+    <button class="btn btn-danger btn-sm" @click="清空全部" v-if="tickets.length">清空全部</button>
+    <button class="btn btn-primary" @click="显示弹窗=true">+ 添加号码</button>
   </div>
 </div>
 
 <!-- Global stats -->
-<div class="stat-cards" v-if="tickets.length&&dataLoaded">
-  <div class="stat-card"><div class="label">保存号码</div><div class="value">{{globalStats.totalTickets}}注</div></div>
-  <div class="stat-card"><div class="label">累计中奖</div><div class="value gold">{{globalStats.totalWins}}次</div></div>
-  <div class="stat-card"><div class="label">累计金额</div><div class="value gold">{{格式化金额(globalStats.totalAmount)}}</div></div>
-  <div class="stat-card"><div class="label">最新中奖</div><div class="value" v-if="globalStats.latestWin">{{globalStats.latestWin.name}}<div class="sub">{{globalStats.latestWin.date}}</div></div><div class="value" v-else>-</div></div>
-  <div class="stat-card"><div class="label">最大中奖</div><div class="value gold" v-if="globalStats.maxWin">{{globalStats.maxWin.name}} {{globalStats.maxWin.amount}}元<div class="sub">{{globalStats.maxWin.date}}</div></div><div class="value" v-else>-</div></div>
+<div class="stat-cards" v-if="tickets.length&&数据就绪">
+  <div class="stat-card"><div class="label">保存号码</div><div class="value">{{总统计.totalTickets}}注</div></div>
+  <div class="stat-card"><div class="label">累计中奖</div><div class="value gold">{{总统计.totalWins}}次</div></div>
+  <div class="stat-card"><div class="label">累计金额</div><div class="value gold">{{格式化金额(总统计.totalAmount)}}</div></div>
+  <div class="stat-card"><div class="label">最新中奖</div><div class="value" v-if="总统计.latestWin">{{总统计.latestWin.name}}<div class="sub">{{总统计.latestWin.date}}</div></div><div class="value" v-else>-</div></div>
+  <div class="stat-card"><div class="label">最大中奖</div><div class="value gold" v-if="总统计.maxWin">{{总统计.maxWin.name}} {{总统计.maxWin.amount}}元<div class="sub">{{总统计.maxWin.date}}</div></div><div class="value" v-else>-</div></div>
 </div>
 
 <!-- Add modal -->
-<div v-if="showAddModal" class="modal-overlay" @click.self="showAddModal=false">
+<div v-if="显示弹窗" class="modal-overlay" @click.self="显示弹窗=false">
   <div class="modal">
     <div class="modal-header">
       <h3>添加号码</h3>
-      <button class="modal-close" @click="showAddModal=false">&times;</button>
+      <button class="modal-close" @click="显示弹窗=false">&times;</button>
     </div>
-    <div class="form-row"><label>彩种:</label><div class="tabs" style="margin:0"><div class="tab" :class="{active:lottery==='ssq'}" @click="lottery='ssq'">双色球</div><div class="tab" :class="{active:lottery==='dlt'}" @click="lottery='dlt'">大乐透</div></div></div>
+    <div class="form-row"><label>彩种:</label><div class="tabs" style="margin:0"><div class="tab" :class="{active:彩种==='ssq'}" @click="彩种='ssq'">双色球</div><div class="tab" :class="{active:彩种==='dlt'}" @click="彩种='dlt'">大乐透</div></div></div>
     <div class="form-row"><label>备注:</label><input type="text" v-model="label" placeholder="可选，如 第1注" style="flex:1"></div>
-    <p class="hint" style="margin-bottom:4px">{{lottery==='ssq'?'格式: 01 04 19 22 24 25 + 15':'格式: 01 05 12 20 25 + 03 08'}}，每行一组</p>
-    <textarea v-model="inputText" :placeholder="lottery==='ssq'?'01 04 19 22 24 25 + 15':'01 05 12 20 25 + 03 08'" style="min-height:80px"></textarea>
-    <div style="margin-top:12px"><button class="btn btn-primary" @click="addTickets();showAddModal=false">确认添加</button></div>
+    <p class="hint" style="margin-bottom:4px">{{彩种==='ssq'?'格式: 01 04 19 22 24 25 + 15':'格式: 01 05 12 20 25 + 03 08'}}，每行一组</p>
+    <textarea v-model="输入内容" :placeholder="彩种==='ssq'?'01 04 19 22 24 25 + 15':'01 05 12 20 25 + 03 08'" style="min-height:80px"></textarea>
+    <div style="margin-top:12px"><button class="btn btn-primary" @click="添加号码();显示弹窗=false">确认添加</button></div>
   </div>
 </div>
 
 <!-- Ticket list -->
-  <div v-if="!dataLoaded" class="loading-box">加载数据中...</div>
+  <div v-if="!数据就绪" class="loading-box">加载数据中...</div>
   <div v-else-if="!tickets.length" class="empty-state">还没有保存号码，请先添加</div>
   <div v-else>
-    <div v-for="ts in ticketStats" :key="ts.id" class="ticket-item">
+    <div v-for="ts in 号码统计" :key="ts.id" class="ticket-item">
       <div class="ticket-header">
         <div><span class="ticket-label">{{ts.label||'未命名'}}</span>
           <span class="balls" style="margin-left:8px">
-            <template v-if="ts.lottery==='ssq'"><span v-for="n in (ts.numbers.red||'').split(',')" class="ball ball-red" style="width:22px;height:22px;font-size:10px">{{n}}</span><span class="ball ball-blue" style="width:22px;height:22px;font-size:10px">{{ts.numbers.blue}}</span></template>
+            <template v-if="ts.彩种==='ssq'"><span v-for="n in (ts.numbers.red||'').split(',')" class="ball ball-red" style="width:22px;height:22px;font-size:10px">{{n}}</span><span class="ball ball-blue" style="width:22px;height:22px;font-size:10px">{{ts.numbers.blue}}</span></template>
             <template v-else><span v-for="n in (ts.numbers.front||'').split(',')" class="ball ball-red" style="width:22px;height:22px;font-size:10px">{{n}}</span><span v-for="n in (ts.numbers.back||'').split(',')" class="ball ball-blue" style="width:22px;height:22px;font-size:10px">{{n}}</span></template>
           </span>
         </div>
-        <div style="display:flex;gap:6px;align-items:center">
-          <button class="btn btn-secondary btn-sm" @click="toggleExpand(ts.id)">{{expanded[ts.id]?'收起':'详情'}}</button>
-          <button class="btn btn-danger btn-sm" @click="removeTicket(ts.id)">删除</button>
+        <div style="display:flex;gap:6px;align-列表:center">
+          <button class="btn btn-secondary btn-sm" @click="切换展开(ts.id)">{{已展开[ts.id]?'收起':'详情'}}</button>
+          <button class="btn btn-danger btn-sm" @click="删除号码(ts.id)">删除</button>
         </div>
       </div>
       <div v-if="ts.totalWins" class="ticket-stats">
@@ -480,16 +480,16 @@ const MyTickets={
         <div class="ticket-stat"><div class="ticket-stat-label">最大中奖</div><div class="ticket-stat-value gold">{{ts.maxWin?.name}} {{ts.maxWin?.amount}}元</div><div class="ticket-stat-sub">{{ts.maxWin?.date}}</div></div>
       </div>
       <div v-else class="ticket-meta">暂未中奖</div>
-      <div class="win-history" v-if="expanded[ts.id]&&ts.wins.length">
+      <div class="win-history" v-if="已展开[ts.id]&&ts.wins.length">
         <div class="win-row" style="background:#f3f4f6;color:#64748b;font-weight:600"><span>期号</span><span>日期</span><span>奖项</span><span>金额</span></div>
         <div class="win-row" v-for="w in ts.wins" :key="w.code">
-          <router-link :to="'/draw/'+ts.lottery+'/'+w.code" class="code">{{w.code}}</router-link>
+          <router-link :to="'/开奖/'+ts.彩种+'/'+w.code" class="code">{{w.code}}</router-link>
           <span class="date">{{w.date}}</span>
           <span class="prize">{{w.name}}</span>
           <span class="prize">{{w.amount}}元</span>
         </div>
       </div>
-      <div v-if="expanded[ts.id]&&!ts.wins.length" class="hint" style="padding:8px">暂未中奖</div>
+      <div v-if="已展开[ts.id]&&!ts.wins.length" class="hint" style="padding:8px">暂未中奖</div>
     </div>
   </div></div>`
 };
@@ -518,7 +518,7 @@ const app=createApp({
     }
 
     async function 抓取福运奖(code){
-      // Fetch SSQ prize data from 500.com detail page to get 福运奖 (type 7)
+      // Fetch SSQ prize data from 500.com detail 页码 to get 福运奖 (type 7)
       const short=code.slice(2); // 2026047 -> 26047
       const url='https://kaijiang.500.com/shtml/ssq/'+short+'.shtml';
       const html=await 请求HTML(url);
@@ -539,19 +539,19 @@ const app=createApp({
     }
 
     async function 刷新数据(){
-      refreshing.value=true;refreshOk.value=false;
+      正在刷新.value=true;刷新成功.value=false;
       await 加载数据();
       let newDraws=0;
       const year=new Date().getFullYear();
       // SSQ: fetch current year + recent draws
       try{
-        const url=SSQ_API+'?name=ssq&issueStart='+year+'001&issueEnd='+year+'999&pageNo=1&pageSize=100';
+        const url=SSQ_API+'?name=ssq&issueStart='+year+'001&issueEnd='+year+'999&pageNo=1&每页数=100';
         const d=await 请求JSON(url);
         if(d&&d.state===0&&d.result){
-          const existing=new Set((allData.value.ssq||[]).map(x=>x.code));
-          const items=d.result.filter(x=>!existing.has(x.code));
-          if(items.length){
-            const mapped=items.map(x=>{let pgParsed=[];try{pgParsed=JSON.parse(x.prizegrades||'[]')}catch(e){}return{code:x.code,draw_date:x.date,week_day:x.week||'',red:x.red,blue:x.blue,sales:+x.sales,pool_money:+x.poolbalance,content:x.content||'',prize_grades:x.prizegrades||'',prize_grades_parsed:有福运奖({code:x.code,pool_money:+x.poolbalance})?pgParsed.map(p=>p.type===7&&!p.typenum?{...p,typenum:'-',typemoney:'5'}:p):pgParsed}});
+          const existing=new Set((全部数据.value.ssq||[]).map(x=>x.code));
+          const 列表=d.result.filter(x=>!existing.has(x.code));
+          if(列表.length){
+            const mapped=列表.map(x=>{let pgParsed=[];try{pgParsed=JSON.parse(x.prizegrades||'[]')}catch(e){}return{code:x.code,draw_date:x.date,week_day:x.week||'',red:x.red,blue:x.blue,sales:+x.sales,pool_money:+x.poolbalance,content:x.content||'',prize_grades:x.prizegrades||'',prize_grades_parsed:有福运奖({code:x.code,pool_money:+x.poolbalance})?pgParsed.map(p=>p.type===7&&!p.typenum?{...p,typenum:'-',typemoney:'5'}:p):pgParsed}});
             // Fetch 福运奖 data from 500.com for draws that qualify
             const fuyunCodes=mapped.filter(d=>有福运奖(d)&&(!d.prize_grades_parsed.find(p=>p.type===7)||!d.prize_grades_parsed.find(p=>p.type===7)?.typenum||d.prize_grades_parsed.find(p=>p.type===7)?.typenum==='-'));
             if(fuyunCodes.length){
@@ -563,38 +563,38 @@ const app=createApp({
                 }
               });
             }
-            allData.value={...allData.value,ssq:[...mapped,...allData.value.ssq]};newDraws+=items.length;
+            全部数据.value={...全部数据.value,ssq:[...mapped,...全部数据.value.ssq]};newDraws+=列表.length;
           }
         }
       }catch(e){console.log('SSQ refresh error:',e)}
-      // DLT: fetch latest page
+      // DLT: fetch latest 页码
       try{
-        const url=DLT_API+'?gameNo=85&provinceId=0&pageSize=50&pageNo=1&is498=true';
+        const url=DLT_API+'?gameNo=85&provinceId=0&每页数=50&pageNo=1&is498=true';
         const d=await 请求JSON(url);
         if(d&&d.value&&d.value.list){
-          const existing=new Set((allData.value.dlt||[]).map(x=>x.code));
-          const items=d.value.list.filter(x=>!existing.has(x.lotteryDrawNum));
-          if(items.length){
-            const mapped=items.map(x=>{
+          const existing=new Set((全部数据.value.dlt||[]).map(x=>x.code));
+          const 列表=d.value.list.filter(x=>!existing.has(x.lotteryDrawNum));
+          if(列表.length){
+            const mapped=列表.map(x=>{
               const nums=x.lotteryDrawResult.trim().split(/\s+/);
-              const pgParsed=(x.prizeLevelList||[]).map(p=>({level:p.prizeLevel,count:p.stakeCount,amount:p.stakeAmountFormat,total:p.totalPrizeamount}));
+              const pgParsed=(x.prizeLevelList||[]).map(p=>({level:p.prizeLevel,count:p.stakeCount,amount:p.stakeAmountFormat,总数:p.totalPrizeamount}));
               return{code:x.lotteryDrawNum,draw_date:x.lotteryDrawTime,front:nums.slice(0,5).join(','),back:nums.slice(5).join(','),sales:+(x.totalSaleAmount||'0').replace(/,/g,''),pool_money:Math.round(parseFloat(x.poolBalanceAfterdraw||'0')),prize_grades:JSON.stringify(pgParsed),prize_grades_parsed:pgParsed};
             });
-            allData.value={...allData.value,dlt:[...mapped,...allData.value.dlt]};newDraws+=mapped.length;
+            全部数据.value={...全部数据.value,dlt:[...mapped,...全部数据.value.dlt]};newDraws+=mapped.length;
           }
         }
       }catch(e){console.log('DLT refresh error:',e)}
 
-      refreshing.value=false;
-      if(newDraws>0){refreshOk.value=true;弹出提示('已获取 '+newDraws+' 期新数据','success')}
+      正在刷新.value=false;
+      if(newDraws>0){刷新成功.value=true;弹出提示('已获取 '+newDraws+' 期新数据','success')}
       else{弹出提示('数据已是最新，无需更新','info')}
     }
-    return{toast,refreshing,refreshOk,刷新数据};
+    return{提示框,正在刷新,刷新成功,刷新数据};
   }
 });
 
 const router=createRouter({history:createWebHashHistory(),routes:[
-  {path:'/',component:DrawList},{path:'/draw/:lottery/:code',component:DrawDetail},
+  {path:'/',component:DrawList},{path:'/开奖/:彩种/:code',component:DrawDetail},
   {path:'/my',component:MyTickets}
 ]});
 app.config.errorHandler=(err,instance,info)=>{console.error('Vue error:',err,info);document.getElementById('app').innerHTML='<div style="padding:40px;text-align:center;color:#dc2626"><h2>页面出错了</h2><p style="color:#64748b;font-size:13px;margin-top:8px">请刷新页面重试</p><pre style="text-align:left;margin-top:16px;font-size:11px;color:#374151;background:#f3f4f6;padding:12px;border-radius:8px;overflow:auto">'+err.message+'</pre></div>'};app.use(router);app.mount('#app');
