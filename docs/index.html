@@ -303,11 +303,11 @@ const DrawList={
     function 跳转页(p){if(p<1||p>总页数.value)return;页码.value=p;window.scrollTo({top:0,behavior:'smooth'})}
     const 页码列表=computed(()=>{const pages=[];const tp=总页数.value,cp=页码.value;let s=Math.max(1,cp-3),e=Math.min(tp,cp+3);if(s>1)pages.push(1);if(s>2)pages.push('...');for(let i=s;i<=e;i++)pages.push(i);if(e<tp-1)pages.push('...');if(e<tp)pages.push(tp);return pages});
     // init now inline via onMounted above
-    return{彩种,页码,列表,总数,总页数,加载中,搜索期号,切换彩种,跳转页,搜索期号,页码列表,格式化金额,已展开,切换展开,双色球奖名,双色球条件,大乐透条件,排序奖项};
+    return{彩种,页码,列表,总数,总页数,加载中,搜索期号,切换彩种,跳转页,执行搜索,页码列表,格式化金额,已展开,切换展开,双色球奖名,双色球条件,大乐透条件,排序奖项};
   },
   template:`<div>
   <div class="tabs"><div class="tab" :class="{active:彩种==='ssq'}" @click="切换彩种('ssq')">双色球</div><div class="tab" :class="{active:彩种==='dlt'}" @click="切换彩种('dlt')">大乐透</div></div>
-  <div class="form-row" style="margin-bottom:12px"><label>期号:</label><input type="text" v-model="搜索期号" @keyup.enter="搜索期号" placeholder="输入期号..."><button class="btn btn-secondary btn-sm" @click="搜索期号">搜索</button><button class="btn btn-secondary btn-sm" v-if="搜索期号" @click="搜索期号='';搜索期号()">清除</button></div>
+  <div class="form-row" style="margin-bottom:12px"><label>期号:</label><input type="text" v-model="搜索期号" @keyup.enter="执行搜索" placeholder="输入期号..."><button class="btn btn-secondary btn-sm" @click="执行搜索">搜索</button><button class="btn btn-secondary btn-sm" v-if="搜索期号" @click="搜索期号='';执行搜索()">清除</button></div>
   <div v-if="加载中" class="loading-box">加载中...</div>
   <div v-else-if="!列表.length" class="loading-box">暂无数据</div>
   <div v-else>
